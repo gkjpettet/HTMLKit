@@ -1,5 +1,17 @@
 #tag Class
 Protected Class HTMLParser
+	#tag Method, Flags = &h0
+		Shared Function BlockTags() As String()
+		  Static bt() As String = Array("div", "p", "h1", "h2", "h3", "h4", "h5", "h6", _
+		  "ul", "ol", "li", "table", "tr", "td", "th", "thead", "tbody", "tfoot", _
+		  "form", "fieldset", "blockquote", "pre", "article", "section", "nav", _
+		  "aside", "header", "footer", "main", "figure", "figcaption", "address")
+		  
+		  Return bt
+		  
+		End Function
+	#tag EndMethod
+
 	#tag Method, Flags = &h21, Description = 436C6F736573207468652074616720776974682074686520706173736564206E616D652E
 		Private Sub CloseTag(tagName As String)
 		  /// Closes the tag with the passed name.
@@ -211,6 +223,17 @@ Protected Class HTMLParser
 		  d.Value("mdash") = "—"
 		  
 		  Return d
+		  
+		End Function
+	#tag EndMethod
+
+	#tag Method, Flags = &h0
+		Shared Function InlineTags() As String()
+		  Static it() As String = Array("span", "a", "strong", "em", "b", "i", "u", "small", _
+		  "mark", "del", "ins", "sub", "sup", "code", "kbd", "samp", "var", _
+		  "time", "abbr", "cite", "q", "dfn")
+		  
+		  Return it
 		  
 		End Function
 	#tag EndMethod
@@ -748,6 +771,17 @@ Protected Class HTMLParser
 		  Static rtt() As String = Array("script", "style")
 		  
 		  Return rtt
+		  
+		End Function
+	#tag EndMethod
+
+	#tag Method, Flags = &h0
+		Shared Function SemanticTags() As String()
+		  Static hst() As String = Array("article", "aside", "details", "figcaption", _
+		  "figure", "footer", "header", "main", "mark", "nav", "section", _
+		  "summary", "time")
+		  
+		  Return hst
 		  
 		End Function
 	#tag EndMethod
