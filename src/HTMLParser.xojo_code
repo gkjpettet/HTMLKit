@@ -1,5 +1,46 @@
 #tag Class
 Protected Class HTMLParser
+	#tag Method, Flags = &h21, Description = 4164647320612070617273696E67206572726F722E20496E20737472696374206D6F64652C2077652072616973652074686520657863657074696F6E20696E206164646974696F6E20746F206C6F6767696E672069742E
+		Private Sub AddError(errorType As HTMLParserException.Types, message As String, severity As HTMLParserException.Severities = HTMLParserException.Severities.Warning)
+		  /// Adds a parsing error.
+		  /// In strict mode, we raise the exception in addition to logging it.
+		  
+		  Var e As New HTMLParserException(errorType, mLineNumber, mColumnNumber, message, severity)
+		  
+		  // Add a context snippet.
+		  Var contextStart As Integer = Max(0, mPosition - 20)
+		  Var contextEnd As Integer = Min(mLength, mPosition + 20)
+		  e.Context = "..." + mHTML.Middle(contextStart, contextEnd - contextStart) + "..."
+		  
+		  mErrors.Add(e)
+		  
+		  // In strict mode, errors are fatal.
+		  If mStrictMode And severity = HTMLParserException.Severities.Error Then
+		    Raise e
+		  End If
+		  
+		End Sub
+	#tag EndMethod
+
+	#tag Method, Flags = &h21, Description = 5570646174657320706F736974696F6E20747261636B696E672E
+		Private Sub AdvancePosition(count As Integer = 1)
+		  /// Updates position tracking.
+		  
+		  For i As Integer = 1 To count
+		    If mPosition < mLength Then
+		      If mHTML.Middle(mPosition, 1) = Chr(10) Then
+		        mLineNumber = mLineNumber + 1
+		        mColumnNumber = 1
+		      Else
+		        mColumnNumber = mColumnNumber + 1
+		      End If
+		      mPosition = mPosition + 1
+		    End If
+		  Next i
+		  
+		End Sub
+	#tag EndMethod
+
 	#tag Method, Flags = &h0
 		Shared Function BlockTags() As String()
 		  Static bt() As String = Array("div", "p", "h1", "h2", "h3", "h4", "h5", "h6", _
@@ -10,6 +51,43 @@ Protected Class HTMLParser
 		  Return bt
 		  
 		End Function
+	#tag EndMethod
+
+	#tag Method, Flags = &h21, Description = 436865636B20666F7220726571756972656420617474726962757465732E
+		Private Sub CheckRequiredAttributes(node As HTMLNode)
+		  /// Check for required attributes.
+		  
+		  Select Case node.TagName
+		  Case "img"
+		    If node.AttributeValue("src") = "" Then
+		      AddError(HTMLParserException.Types.MissingRequiredAttribute, _
+		      "<img> tag missing required 'src' attribute", HTMLParserException.Severities.Error)
+		    End If
+		    If node.AttributeValue("alt") = "" And mStrictMode Then
+		      AddError(HTMLParserException.Types.MissingRequiredAttribute, _
+		      "<img> tag missing 'alt' attribute for accessibility", HTMLParserException.Severities.Warning)
+		    End If
+		    
+		  Case "a"
+		    If node.AttributeValue("href") = "" And node.AttributeValue("name") = "" Then
+		      AddError(HTMLParserException.Types.MissingRequiredAttribute, _
+		      "<a> tag should have 'href' or 'name' attribute", HTMLParserException.Severities.Warning)
+		    End If
+		    
+		  Case "form"
+		    If node.AttributeValue("action") = "" And mStrictMode Then
+		      AddError(HTMLParserException.Types.MissingRequiredAttribute, _
+		      "<form> tag missing 'action' attribute", HTMLParserException.Severities.Info)
+		    End If
+		    
+		  Case "label"
+		    If node.AttributeValue("for") = "" And mStrictMode Then
+		      AddError(HTMLParserException.Types.MissingRequiredAttribute, _
+		      "<label> tag should have 'for' attribute", HTMLParserException.Severities.Info)
+		    End If
+		  End Select
+		  
+		End Sub
 	#tag EndMethod
 
 	#tag Method, Flags = &h21, Description = 436C6F736573207468652074616720776974682074686520706173736564206E616D652E
@@ -37,6 +115,14 @@ Protected Class HTMLParser
 		    End If
 		    mOpenTags.RemoveAt(mOpenTags.LastIndex)
 		  Next i
+		  
+		End Sub
+	#tag EndMethod
+
+	#tag Method, Flags = &h0
+		Sub Constructor(strictMode As Boolean = False)
+		  mStrictMode = strictMode
+		  mTrackIDs = New Dictionary
 		  
 		End Sub
 	#tag EndMethod
@@ -124,6 +210,45 @@ Protected Class HTMLParser
 		  Wend
 		  
 		  Return result
+		End Function
+	#tag EndMethod
+
+	#tag Method, Flags = &h0, Description = 52657475726E7320616E792070617273696E67206572726F72732074686174206F636375727265642E
+		Function Errors() As HTMLParserException()
+		  /// Returns any parsing errors that occurred.
+		  
+		  Return mErrors
+		  
+		End Function
+	#tag EndMethod
+
+	#tag Method, Flags = &h0, Description = 52657475726E73205472756520696620616E79206572726F7273206F6363757272656420647572696E672070617273696E672E
+		Function HasErrors() As Boolean
+		  /// Returns True if any errors occurred during parsing.
+		  
+		  For Each e As HTMLParserException In mErrors
+		    If e.Severity = HTMLParserException.Severities.Error Then
+		      Return True
+		    End If
+		  Next e
+		  
+		  Return False
+		  
+		End Function
+	#tag EndMethod
+
+	#tag Method, Flags = &h0, Description = 52657475726E73205472756520696620616E79207761726E696E6773206F6363757272656420647572696E672070617273696E672E
+		Function HasWarnings() As Boolean
+		  /// Returns True if any warnings occurred during parsing.
+		  
+		  For Each e As HTMLParserException In mErrors
+		    If e.Severity = HTMLParserException.Severities.Warning Then
+		      Return True
+		    End If
+		  Next e
+		  
+		  Return False
+		  
 		End Function
 	#tag EndMethod
 
@@ -238,12 +363,60 @@ Protected Class HTMLParser
 		End Function
 	#tag EndMethod
 
+	#tag Method, Flags = &h21, Description = 52657475726E732054727565206966207468652063757272656E74206E6F6465206973206E657374656420696E20612076616C6964206D616E6E65722E
+		Private Function IsValidNesting(tagName As String) As Boolean
+		  /// Returns True if the current node is nested in a valid manner.
+		  
+		  // Check common invalid nesting patterns.
+		  
+		  Static pInvalid() As String = Array("div", "p", "h1", "h2", "h3", _
+		  "h4", "h5", "h6", "ul", "ol", "table", "blockquote", "form")
+		  
+		  Static buttonInvalid() As String = Array("a", "button", "input", _
+		  "select", "textarea", "iframe")
+		  
+		  If mCurrentNode.TagName = "p" Then
+		    // p tags cannot contain block elements.
+		    If pInvalid.IndexOf(tagName) <> -1 Then Return False
+		  End If
+		  
+		  If mCurrentNode.TagName = "button" Then
+		    // Buttons cannot contain interactive elements.
+		    If buttonInvalid.IndexOf(tagName) <> -1 Then Return False
+		  End If
+		  
+		  If tagName = "li" Then
+		    // li must be in ul or ol.
+		    Var ancestor As HTMLNode = mCurrentNode
+		    Var found As Boolean = False
+		    While ancestor <> Nil
+		      If ancestor.TagName = "ul" Or ancestor.TagName = "ol" Then
+		        found = True
+		        Exit
+		      End If
+		      ancestor = ancestor.Parent
+		    Wend
+		    If Not found Then
+		      Return False
+		    End If
+		  End If
+		  
+		  Return True
+		  
+		End Function
+	#tag EndMethod
+
 	#tag Method, Flags = &h0
 		Function Parse(html As String) As HTMLNode
 		  // Initialise.
 		  mHTML = html
 		  mPosition = 0
 		  mLength = html.Length
+		  mLineNumber = 1
+		  mColumnNumber = 1
+		  mErrors.ResizeTo(-1)
+		  mTrackIDs.RemoveAll
+		  
 		  mRoot = New HTMLNode(HTMLNode.Types.Element)
 		  mRoot.TagName = "document"
 		  mCurrentNode = mRoot
@@ -257,9 +430,12 @@ Protected Class HTMLParser
 		    End If
 		  Wend
 		  
-		  // Close any remaining open tags.
+		  // Check for unclosed tags and close any that remain.
 		  While mOpenTags.Count > 0
-		    CloseTag(mOpenTags(mOpenTags.LastIndex))
+		    Var tagName As String = mOpenTags(mOpenTags.LastIndex)
+		    AddError(HTMLParserException.Types.UnclosedTag, _
+		    "Tag <" + tagName + "> was not closed", HTMLParserException.Severities.Error)
+		    CloseTag(tagName)
 		  Wend
 		  
 		  Return mRoot
@@ -361,6 +537,96 @@ Protected Class HTMLParser
 		End Function
 	#tag EndMethod
 
+	#tag Method, Flags = &h21, Description = 5061727365206174747269627574652076616C756520776974682071756F74652076616C69646174696F6E2E
+		Private Function ParseAttributeValueWithValidation() As String
+		  /// Parse attribute value with quote validation.
+		  
+		  Var quote As String = PeekChar
+		  Var startLine As Integer = mLineNumber
+		  Var startColumn As Integer = mColumnNumber
+		  
+		  If quote = """" Or quote = "'" Then
+		    // Quoted value.
+		    AdvancePosition
+		    Var startPos As Integer = mPosition
+		    Var foundClosingQuote As Boolean = False
+		    
+		    While mPosition < mLength
+		      If PeekChar() = quote Then
+		        foundClosingQuote = True
+		        Exit
+		      End If
+		      AdvancePosition
+		    Wend
+		    
+		    Var value As String = mHTML.Middle(startPos, mPosition - startPos)
+		    
+		    If foundClosingQuote Then
+		      AdvancePosition // Skip the closing quote.
+		    Else
+		      AddError(HTMLParserException.Types.UnclosedQuote, _
+		      "Unclosed quote in attribute value", HTMLParserException.Severities.Error)
+		    End If
+		    
+		    Return value
+		  Else
+		    // Unquoted value.
+		    If mStrictMode Then
+		      AddError(HTMLParserException.Types.InvalidAttribute, _
+		      "Attribute values should be quoted", HTMLParserException.Severities.Warning)
+		    End If
+		    
+		    Var startPos As Integer = mPosition
+		    While mPosition < mLength
+		      Var c As String = PeekChar()
+		      If c = " " Or c = ">" Or c = Chr(9) Or c = Chr(10) Or c = Chr(13) Then
+		        Exit
+		      End If
+		      AdvancePosition
+		    Wend
+		    
+		    Return mHTML.Middle(startPos, mPosition - startPos)
+		  End If
+		  
+		End Function
+	#tag EndMethod
+
+	#tag Method, Flags = &h21, Description = 2F2F2050617273652061747472696275746520776974682076616C69646174696F6E2E
+		Private Sub ParseAttributeWithValidation(node As HTMLNode, attrName As String)
+		  /// // Parse attribute with validation.
+		  
+		  SkipWhitespace
+		  
+		  // Check for "=".
+		  If PeekChar <> "=" Then
+		    // An attribute without value (boolean attribute).
+		    node.AttributeValue(attrName.Lowercase) = ""
+		    
+		    // Validate boolean attributes.
+		    Static booleanAttrs() As String = Array("checked", "disabled", "readonly", _
+		    "required", "multiple", "selected", "defer", "async", "autofocus")
+		    If booleanAttrs.IndexOf(attrName.Lowercase) = -1 And mStrictMode Then
+		      AddError(HTMLParserException.Types.InvalidAttribute, _
+		      "Attribute '" + attrName + "' should have a value", HTMLParserException.Severities.Info)
+		    End If
+		    Return
+		  End If
+		  
+		  // Skip "="
+		  AdvancePosition
+		  
+		  SkipWhitespace
+		  
+		  // Parse the attribute value.
+		  Var attrValue As String = ParseAttributeValueWithValidation
+		  node.AttributeValue(attrName.Lowercase) = DecodeHTMLEntities(attrValue)
+		  
+		  // Validate specific attributes.
+		  ValidateAttributeValue(node.TagName, attrName.Lowercase, attrValue)
+		  
+		End Sub
+	#tag EndMethod
+
 	#tag Method, Flags = &h21, Description = 50617273657320612043444154412073656374696F6E2E20417373756D65732077652068617665206A75737420736B69707065642074686520223C22
 		Private Sub ParseCDATA()
 		  /// Parses a CDATA section. Assumes we have just skipped the "<"
@@ -410,13 +676,44 @@ Protected Class HTMLParser
 		  
 		  // Skip to ">".
 		  While mPosition < mLength And PeekChar <> ">"
-		    mPosition = mPosition + 1
+		    AdvancePosition
 		  Wend
 		  If PeekChar = ">" Then
-		    mPosition = mPosition + 1
+		    AdvancePosition
 		  End If
 		  
-		  If tagName = "" Then Return
+		  If tagName = "" Then
+		    AddError(HTMLParserException.Types.MalformedTag, _
+		    "Empty closing tag", HTMLParserException.Severities.Error)
+		    Return
+		  End If
+		  
+		  // Check if this closing tag matches an open tag.
+		  Var foundIndex As Integer = -1
+		  For i As Integer = mOpenTags.LastIndex DownTo 0
+		    If mOpenTags(i) = tagName Then
+		      foundIndex = i
+		      Exit
+		    End If
+		  Next
+		  
+		  If foundIndex = -1 Then
+		    AddError(HTMLParserException.Types.UnmatchedClosingTag, _
+		    "Closing tag </" + tagName + "> has no matching opening tag", _
+		    HTMLParserException.Severities.Error)
+		    Return
+		  End If
+		  
+		  // Check if we're closing tags in the wrong order.
+		  If foundIndex < mOpenTags.LastIndex Then
+		    Var skipped() As String
+		    For i As Integer = mOpenTags.LastIndex DownTo foundIndex + 1
+		      skipped.Add(mOpenTags(i))
+		    Next
+		    AddError(HTMLParserException.Types.InvalidNesting, _
+		    "Closing tag </" + tagName + "> skips unclosed tags: " + _
+		    String.FromArray(skipped, ", "), HTMLParserException.Severities.Warning)
+		  End If
 		  
 		  CloseTag(tagName)
 		  
@@ -535,11 +832,33 @@ Protected Class HTMLParser
 		  /// Parses an opening tag.
 		  /// Assumes we have skipped past the "<".
 		  
+		  Var startLine As Integer = mLineNumber
+		  Var startColumn As Integer = mColumnNumber
+		  
 		  Var tagName As String = ParseTagName
 		  
-		  If tagName = "" Then Return
+		  If tagName = "" Then
+		    AddError(HTMLParserException.Types.MalformedTag, _
+		    "Empty tag name", HTMLParserException.Severities.Error)
+		    Return
+		  End If
 		  
 		  tagName = tagName.Lowercase
+		  
+		  // Check for deprecated tags.
+		  Static deprecatedTags() As String = Array("font", "center", "marquee", _
+		  "blink", "big", "strike", "tt", "frame", "frameset", "noframes")
+		  If deprecatedTags.IndexOf(tagName) <> -1 Then
+		    AddError(HTMLParserException.Types.DeprecatedTag, _
+		    "Tag <" + tagName + "> is deprecated in HTML5", HTMLParserException.Severities.Warning)
+		  End If
+		  
+		  // Check nesting rules.
+		  If Not IsValidNesting(tagName) Then
+		    AddError(HTMLParserException.Types.InvalidNesting, _
+		    "Tag <" + tagName + "> cannot be nested inside <" + mCurrentNode.TagName + ">", _
+		    HTMLParserException.Severities.Warning)
+		  End If
 		  
 		  // Check if this tag should auto-close parent tags.
 		  If AutoCloseTags.HasKey(tagName) Then
@@ -557,38 +876,72 @@ Protected Class HTMLParser
 		  Var node As New HTMLNode(HTMLNode.Types.Element)
 		  node.TagName = tagName
 		  
-		  // Parse any attributes.
+		  // Parse attributes with validation.
 		  SkipWhitespace
+		  Var seenAttributes As New Dictionary
+		  
 		  While mPosition < mLength And PeekChar <> ">" And PeekChar <> "/"
-		    ParseAttribute(node)
+		    Var attrName As String = ParseAttributeName
+		    If attrName = "" Then
+		      AdvancePosition
+		      Continue
+		    End If
+		    
+		    // Check for duplicate attributes.
+		    If seenAttributes.HasKey(attrName.Lowercase) Then
+		      AddError(HTMLParserException.Types.InvalidAttribute, _
+		      "Duplicate attribute '" + attrName + "' in <" + tagName + ">", _
+		      HTMLParserException.Severities.Warning)
+		    End If
+		    seenAttributes.Value(attrName.Lowercase) = True
+		    
+		    ParseAttributeWithValidation(node, attrName)
 		    SkipWhitespace
 		  Wend
+		  
+		  // Check for required attributes.
+		  CheckRequiredAttributes(node)
+		  
+		  // Track IDs for duplicate checking.
+		  Var id As String = node.AttributeValue("id")
+		  If id <> "" Then
+		    If mTrackIDs.HasKey(id) Then
+		      AddError(HTMLParserException.Types.DuplicateID, _
+		      "Duplicate ID '" + id + "' found", HTMLParserException.Severities.Error)
+		    Else
+		      mTrackIDs.Value(id) = True
+		    End If
+		  End If
 		  
 		  // Check for a self-closing tag.
 		  Var isSelfClosing As Boolean = False
 		  If PeekChar = "/" Then
 		    isSelfClosing = True
-		    mPosition = mPosition + 1
+		    AdvancePosition
 		  End If
 		  
-		  // Skip the closing ">".
-		  If PeekChar = ">" Then
-		    mPosition = mPosition + 1
+		  // Skip closing ">".
+		  If PeekChar() = ">" Then
+		    AdvancePosition
+		  Else
+		    AddError(HTMLParserException.Types.MalformedTag, _
+		    "Missing '>' for tag <" + tagName + ">", HTMLParserException.Severities.Error)
 		  End If
 		  
-		  // Add the node to the tree.
+		  // Add node to tree
 		  mCurrentNode.AddChild(node)
 		  
-		  // Is this a raw text tag (e.g: <script> or <style>)?
+		  // Handle void and raw text tags.
 		  If RawTextTags.IndexOf(tagName) <> -1 And Not isSelfClosing Then
-		    // Parse raw content until the closing tag.
 		    ParseRawTextContent(node, tagName)
-		    
 		  ElseIf VoidTags.IndexOf(tagName) <> -1 Then
+		    If Not isSelfClosing And mStrictMode Then
+		      AddError(HTMLParserException.Types.MalformedTag, _
+		      "Void tag <" + tagName + "> should be self-closing", HTMLParserException.Severities.Warning)
+		    End If
 		    node.IsSelfClosing = True
 		    
 		  ElseIf Not isSelfClosing Then
-		    // Set as the current node if not self-closing.
 		    mCurrentNode = node
 		    mOpenTags.Add(tagName)
 		    node.IsSelfClosing = False
@@ -801,6 +1154,47 @@ Protected Class HTMLParser
 		End Sub
 	#tag EndMethod
 
+	#tag Method, Flags = &h21, Description = 56616C6964617465207370656369666963206174747269627574652076616C7565732E
+		Private Sub ValidateAttributeValue(tagName As String, attrName As String, value As String)
+		  /// Validate specific attribute values.
+		  
+		  // Validate input types.
+		  If tagName = "input" And attrName = "type" Then
+		    Static validTypes() As String = Array("text", "password", "email", "url", _
+		    "tel", "number", "range", "date", "time", "datetime-local", "month", _
+		    "week", "color", "checkbox", "radio", "file", "submit", "reset", _
+		    "button", "hidden", "image", "search")
+		    If validTypes.IndexOf(value.Lowercase) = -1 Then
+		      AddError(HTMLParserException.Types.InvalidAttribute, _
+		      "Invalid input type: '" + value + "'", HTMLParserException.Severities.Warning)
+		    End If
+		  End If
+		  
+		  // Validate URLs.
+		  If attrName = "href" Or attrName = "src" Or attrName = "action" Then
+		    If value.IndexOf("javascript:") = 0 And mStrictMode Then
+		      AddError(HTMLParserException.Types.InvalidAttribute, _
+		      "JavaScript URLs are discouraged", HTMLParserException.Severities.Warning)
+		    End If
+		  End If
+		  
+		  // Validate rel attribute.
+		  If attrName = "rel" And tagName = "a" Then
+		    Static validRels() As String = Array("alternate", "author", "bookmark", _
+		    "external", "help", "license", "next", "nofollow", "noreferrer", _
+		    "noopener", "prev", "search", "tag")
+		    Var rels() As String = value.Split(" ")
+		    For Each rel As String In rels
+		      If validRels.IndexOf(rel.Lowercase) = -1 Then
+		        AddError(HTMLParserException.Types.InvalidAttribute, _
+		        "Unknown rel value: '" + rel + "'", HTMLParserException.Severities.Info)
+		      End If
+		    Next rel
+		  End If
+		  
+		End Sub
+	#tag EndMethod
+
 	#tag Method, Flags = &h1, Description = 52657475726E73206120737461746963206172726179206F6620766F69642F73656C662D636C6F73696E6720746167732E
 		Protected Shared Function VoidTags() As String()
 		  /// Returns a static array of void/self-closing tags.
@@ -839,7 +1233,15 @@ Protected Class HTMLParser
 	#tag EndComputedProperty
 
 	#tag Property, Flags = &h1
+		Protected mColumnNumber As Integer
+	#tag EndProperty
+
+	#tag Property, Flags = &h1
 		Protected mCurrentNode As HTMLNode
+	#tag EndProperty
+
+	#tag Property, Flags = &h1
+		Protected mErrors() As HTMLParserException
 	#tag EndProperty
 
 	#tag Property, Flags = &h1
@@ -848,6 +1250,10 @@ Protected Class HTMLParser
 
 	#tag Property, Flags = &h1
 		Protected mLength As Integer
+	#tag EndProperty
+
+	#tag Property, Flags = &h1
+		Protected mLineNumber As Integer
 	#tag EndProperty
 
 	#tag Property, Flags = &h1
@@ -860,6 +1266,14 @@ Protected Class HTMLParser
 
 	#tag Property, Flags = &h1
 		Protected mRoot As HTMLNode
+	#tag EndProperty
+
+	#tag Property, Flags = &h1
+		Protected mStrictMode As Boolean = False
+	#tag EndProperty
+
+	#tag Property, Flags = &h1, Description = 466F7220747261636B696E67206475706C69636174652049447320696E2074686520646F63756D656E742E
+		Protected mTrackIDs As Dictionary
 	#tag EndProperty
 
 

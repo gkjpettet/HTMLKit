@@ -78,23 +78,102 @@ End
 #tag WindowCode
 	#tag Event
 		Sub Opening()
-		  Var parser As New HTMLParser
-		  Var html As String = "<html><body><h1 class=""content fabulous"">Hello World</h1><p>This is <strong>bold</strong> text.</p></body></html>"
+		  ' Var parser As New HTMLParser
+		  ' Var html As String = "<html><body><h1 class=""content fabulous"">Hello World</h1><p>This is <strong>bold</strong> text.</p></body></html>"
+		  ' 
+		  ' Var document As HTMLNode = parser.Parse(HTML_WITH_CDATA)
+		  ' 
+		  ' // Print the parsed structure.
+		  ' Output.Text = document.ToString
+		  ' 
+		  ' // Traverse the tree.
+		  ' Var s() As String
+		  ' TraverseNodes(document, s)
+		  ' 
+		  ' Output.Text = String.FromArray(s, EndOfLine)
 		  
-		  Var document As HTMLNode = parser.Parse(HTML_WITH_CDATA)
+		  // Basic usage.
+		  Var parser As New HTMLParser(False) // Non-strict mode
+		  Var html As String = "<div><p>Test<span>text</p></div>"
+		  Var doc As HTMLNode = parser.Parse(html)
 		  
-		  // Print the parsed structure.
-		  Output.Text = document.ToString
+		  // Check for errors.
+		  If parser.HasErrors() Then
+		    System.DebugLog("Parse errors found:")
+		    For Each err As HTMLParserException In parser.Errors
+		      System.DebugLog(err.ToString())
+		    Next err
+		  End If
 		  
-		  // Traverse the tree.
-		  Var s() As String
-		  TraverseNodes(document, s)
+		  ' // Strict mode parsing.
+		  ' Var strictParser As New HTMLParser(True)
+		  ' Try
+		  ' doc = strictParser.Parse("<img>") // Will raise exception for missing src
+		  ' Catch e As RuntimeException
+		  ' System.DebugLog("Fatal parse error: " + e.Message)
+		  ' End Try
 		  
-		  Output.Text = String.FromArray(s, EndOfLine)
+		  // Validation report.
+		  Var errors() As HTMLParserException = parser.Errors
+		  Var errorCount As Integer = 0
+		  Var warningCount As Integer = 0
+		  Var infoCount As Integer = 0
 		  
+		  For Each err As HTMLParserException In errors
+		    Select Case err.Severity
+		    Case HTMLParserException.Severities.Error
+		      errorCount = errorCount + 1
+		    Case HTMLParserException.Severities.Warning
+		      warningCount = warningCount + 1
+		    Case HTMLParserException.Severities.Info
+		      infoCount = infoCount + 1
+		    End Select
+		  Next err
+		  
+		  System.DebugLog("Validation Summary:")
+		  System.DebugLog("  Errors: " + errorCount.ToString)
+		  System.DebugLog("  Warnings: " + warningCount.ToString)
+		  System.DebugLog("  Info: " + infoCount.ToString)
+		  
+		  ' Var report As String = GenerateValidationReport(parser.Errors)
+		  ' Break
 		End Sub
 	#tag EndEvent
 
+
+	#tag Method, Flags = &h21, Description = 47656E65726174657320616E642072657475726E7320616E2048544D4C2076616C69646174696F6E207265706F72742E
+		Private Function GenerateValidationReport(errors() As HTMLParserException) As String
+		  /// Generates and returns an HTML validation report.
+		  
+		  Var html As String = "<html><head><title>HTML Validation Report</title>"
+		  html = html + "<style>"
+		  html = html + ".error { color: red; }"
+		  html = html + ".warning { color: orange; }"
+		  html = html + ".info { color: blue; }"
+		  html = html + "</style></head><body>"
+		  html = html + "<h1>HTML Validation Report</h1>"
+		  
+		  If errors.Count = 0 Then
+		    html = html + "<p>No issues found.</p>"
+		  Else
+		    html = html + "<ul>"
+		    For Each err As HTMLParserException In errors
+		      html = html + "<li class='" + err.SeverityString + "'>"
+		      html = html + err.ToString
+		      If err.Context <> "" Then
+		        html = html + "<br><code>" + err.Context + "</code>"
+		      End If
+		      html = html + "</li>"
+		    Next
+		    html = html + "</ul>"
+		  End If
+		  
+		  html = html + "</body></html>"
+		  
+		  Return html
+		  
+		End Function
+	#tag EndMethod
 
 	#tag Method, Flags = &h21
 		Private Sub TraverseNodes(node As HTMLNode, ByRef result() As String, depth As Integer = 0)
