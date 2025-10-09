@@ -33,20 +33,85 @@ Protected Class HTMLParser
 		Private Function DecodeHTMLEntities(s As String) As String
 		  /// Decodes HTML entities within `s` to their actual values and returns a new string with the entities decoded.
 		  
-		  #Pragma Warning "TODO: Make this more robust"
-		  
 		  Var result As String = s
 		  
-		  // Common HTML entities
-		  result = result.ReplaceAll("&amp;", "&")
-		  result = result.ReplaceAll("&lt;", "<")
-		  result = result.ReplaceAll("&gt;", ">")
-		  result = result.ReplaceAll("&quot;", """")
-		  result = result.ReplaceAll("&apos;", "'")
-		  result = result.ReplaceAll("&nbsp;", " ")
+		  // First, handle numeric entities (&#123; and &#xABC;)
+		  result = DecodeNumericEntities(result)
+		  
+		  // Replace named entities.
+		  Var pos As Integer = 0
+		  While pos < result.Length
+		    Var ampPos As Integer = result.IndexOf(pos, "&")
+		    If ampPos = -1 Then Exit
+		    
+		    Var semiPos As Integer = result.IndexOf(ampPos, ";")
+		    If semiPos = -1 Or semiPos > ampPos + 10 Then
+		      pos = ampPos + 1
+		      Continue
+		    End If
+		    
+		    Var entity As String = result.Middle(ampPos + 1, semiPos - ampPos - 1)
+		    If EntityMap.HasKey(entity) Then
+		      result = result.Left(ampPos) + EntityMap.Value(entity) + result.Middle(semiPos + 1)
+		      pos = ampPos + 1
+		    Else
+		      pos = ampPos + 1
+		    End If
+		  Wend
 		  
 		  Return result
 		  
+		End Function
+	#tag EndMethod
+
+	#tag Method, Flags = &h21, Description = 4465636F6465732048544D4C206E756D6572696320656E74697469657320286368617261637465727320726566657272656420746F20627920746865697220556E69636F64652076616C7565292E20452E673A2026233136303B
+		Private Function DecodeNumericEntities(s As String) As String
+		  /// Decodes HTML numeric entities (characters referred to by their Unicode value). 
+		  /// E.g: &#160;
+		  
+		  Var result As String = s
+		  Var pos As Integer = 0
+		  
+		  While pos < result.Length
+		    Var ampPos As Integer = result.IndexOf(pos, "&#")
+		    If ampPos = -1 Then Exit
+		    
+		    Var semiPos As Integer = result.IndexOf(ampPos, ";")
+		    If semiPos = -1 Or semiPos > ampPos + 8 Then
+		      pos = ampPos + 1
+		      Continue
+		    End If
+		    
+		    Var entity As String = result.Middle(ampPos + 2, semiPos - ampPos - 2)
+		    Var charCode As Integer = 0
+		    
+		    If entity.Left(1) = "x" Or entity.Left(1) = "X" Then
+		      // Hexadecimal entity.
+		      Try
+		        charCode = Integer.FromHex(entity.Middle(1))
+		      Catch
+		        pos = ampPos + 1
+		        Continue
+		      End Try
+		    Else
+		      // Decimal entity.
+		      Try
+		        charCode = entity.ToInteger
+		      Catch
+		        pos = ampPos + 1
+		        Continue
+		      End Try
+		    End If
+		    
+		    If charCode > 0 And charCode < 65536 Then
+		      result = result.Left(ampPos) + Chr(charCode) + result.Middle(semiPos + 1)
+		      pos = ampPos + 1
+		    Else
+		      pos = ampPos + 1
+		    End If
+		  Wend
+		  
+		  Return result
 		End Function
 	#tag EndMethod
 
@@ -79,6 +144,71 @@ Protected Class HTMLParser
 		  
 		  // option auto-closes option
 		  d.Value("option") = New Dictionary("option" : Nil)
+		  
+		  Return d
+		  
+		End Function
+	#tag EndMethod
+
+	#tag Method, Flags = &h21, Description = 52657475726E73207468652064696374696F6E61727920746F206265207573656420746F20696E697469616C697365207468652073686172656420456E746974794D61702064696374696F6E6172792E
+		Private Shared Function InitialiseEntityMap() As Dictionary
+		  /// Returns the dictionary to be used to initialise the shared EntityMap dictionary.
+		  ///
+		  /// Note this is not exhaustive.
+		  
+		  Var d As Dictionary = ParseJSON("{}") // HACK: Case-sensitive dictionary.
+		  
+		  // Common entities.
+		  d.Value("amp") = "&"
+		  d.Value("lt") = "<"
+		  d.Value("gt") = ">"
+		  d.Value("quot") = """"
+		  d.Value("apos") = "'"
+		  d.Value("nbsp") = " "
+		  
+		  // Currency.
+		  d.Value("cent") = "¢"
+		  d.Value("pound") = "£"
+		  d.Value("yen") = "¥"
+		  d.Value("euro") = "€"
+		  
+		  // Maths symbols.
+		  d.Value("plusmn") = "±"
+		  d.Value("times") = "×"
+		  d.Value("divide") = "÷"
+		  d.Value("ne") = "≠"
+		  d.Value("le") = "≤"
+		  d.Value("ge") = "≥"
+		  
+		  // Arrows.
+		  d.Value("larr") = "←"
+		  d.Value("uarr") = "↑"
+		  d.Value("rarr") = "→"
+		  d.Value("darr") = "↓"
+		  d.Value("harr") = "↔"
+		  
+		  // Special characters.
+		  d.Value("copy") = "©"
+		  d.Value("reg") = "®"
+		  d.Value("trade") = "™"
+		  d.Value("para") = "¶"
+		  d.Value("sect") = "§"
+		  d.Value("deg") = "°"
+		  d.Value("hellip") = "…"
+		  d.Value("bull") = "•"
+		  d.Value("middot") = "·"
+		  
+		  // Quotes.
+		  d.Value("lsquo") = "'"
+		  d.Value("rsquo") = "'"
+		  d.Value("ldquo") = "“"
+		  d.Value("rdquo") = "”"
+		  d.Value("laquo") = "«"
+		  d.Value("raquo") = "»"
+		  
+		  // Dashes.
+		  d.Value("ndash") = "–"
+		  d.Value("mdash") = "—"
 		  
 		  Return d
 		  
@@ -208,6 +338,47 @@ Protected Class HTMLParser
 		End Function
 	#tag EndMethod
 
+	#tag Method, Flags = &h21, Description = 50617273657320612043444154412073656374696F6E2E20417373756D65732077652068617665206A75737420736B69707065642074686520223C22
+		Private Sub ParseCDATA()
+		  /// Parses a CDATA section. Assumes we have just skipped the "<"
+		  
+		  // Skip "![CDATA[".
+		  mPosition = mPosition + 8
+		  Var startPos As Integer = mPosition
+		  Var content As String = ""
+		  
+		  // Look for the closing "]]>".
+		  While mPosition < mLength - 2
+		    If mHTML.Middle(mPosition, 3) = "]]>" Then
+		      // Found the end of the CDATA section.
+		      content = mHTML.Middle(startPos, mPosition - startPos)
+		      
+		      // Skip the "]]>".
+		      mPosition = mPosition + 3
+		      
+		      // Create the CDATA node.
+		      Var cdataNode As New HTMLNode(HTMLNode.Types.CDATA)
+		      
+		      // We don't decode entities in CDATA sections!.
+		      cdataNode.Content = content
+		      
+		      mCurrentNode.AddChild(cdataNode)
+		      Return
+		    End If
+		    
+		    mPosition = mPosition + 1
+		  Wend
+		  
+		  // This is an unclosed CDATA section - treat the rest of the document as CDATA.
+		  content = mHTML.Middle(startPos, mLength - startPos)
+		  Var cdataNode As New HTMLNode(HTMLNode.Types.CDATA)
+		  cdataNode.Content = content
+		  mCurrentNode.AddChild(cdataNode)
+		  mPosition = mLength
+		  
+		End Sub
+	#tag EndMethod
+
 	#tag Method, Flags = &h21, Description = 506172736573206120636C6F73696E67207461672E20417373756D6573207765277665207365656E206120222F222E
 		Private Sub ParseClosingTag()
 		  /// Parses a closing tag. Assumes we've seen a "/".
@@ -280,6 +451,62 @@ Protected Class HTMLParser
 		End Sub
 	#tag EndMethod
 
+	#tag Method, Flags = &h21, Description = 506172736573206D6978656420434441544120636F6E74656E742077697468696E20726177207465787420746167732028652E673A203C7363726970743E20616E64203C7374796C653E292E
+		Private Sub ParseMixedCDATAContent(parentNode As HTMLNode, content As String)
+		  /// Parses mixed CDATA content within raw text tags (e.g: <script> and <style>).
+		  
+		  Var pos As Integer = 0
+		  Var contentLength As Integer = content.Length
+		  
+		  While pos < contentLength
+		    Var cdataStart As Integer = content.IndexOf(pos, "<![CDATA[")
+		    
+		    If cdataStart = -1 Then
+		      // No more CDATA sections, add the remaining as text.
+		      If pos < contentLength Then
+		        Var remaining As String = content.Middle(pos)
+		        If remaining.Trim <> "" Then
+		          Var textNode As New HTMLNode(HTMLNode.Types.Text)
+		          textNode.Content = remaining
+		          parentNode.AddChild(textNode)
+		        End If
+		      End If
+		      Exit
+		    End If
+		    
+		    // Add any text before the CDATA section.
+		    If cdataStart > pos Then
+		      Var beforeText As String = content.Middle(pos, cdataStart - pos)
+		      If beforeText.Trim <> "" Then
+		        Var textNode As New HTMLNode(HTMLNode.Types.Text)
+		        textNode.Content = beforeText
+		        parentNode.AddChild(textNode)
+		      End If
+		    End If
+		    
+		    // Find the end of the CDATA section.
+		    Var cdataEnd As Integer = content.IndexOf(cdataStart + 9, "]]>")
+		    If cdataEnd = -1 Then
+		      // Unclosed CDATA - treat the rest as CDATA.
+		      Var cdataContent As String = content.Middle(cdataStart + 9)
+		      Var cdataNode As New HTMLNode(HTMLNode.Types.CDATA)
+		      cdataNode.Content = cdataContent
+		      parentNode.AddChild(cdataNode)
+		      Exit
+		    End If
+		    
+		    // Extract and add CDATA content/
+		    Var cdataContent As String = content.Middle(cdataStart + 9, cdataEnd - (cdataStart + 9))
+		    Var cdataNode As New HTMLNode(HTMLNode.Types.CDATA)
+		    cdataNode.Content = cdataContent
+		    parentNode.AddChild(cdataNode)
+		    
+		    pos = cdataEnd + 3 // Move past the "]]>".
+		  Wend
+		  
+		End Sub
+	#tag EndMethod
+
 	#tag Method, Flags = &h21, Description = 50617273657320616E206F70656E696E67207461672E20417373756D6573207765206861766520736B697070656420706173742074686520223C222E
 		Private Sub ParseOpeningTag()
 		  /// Parses an opening tag.
@@ -329,16 +556,80 @@ Protected Class HTMLParser
 		  // Add the node to the tree.
 		  mCurrentNode.AddChild(node)
 		  
-		  // Check if this is a void tag.
-		  If VoidTags.IndexOf(tagName) <> -1 Then
+		  // Is this a raw text tag (e.g: <script> or <style>)?
+		  If RawTextTags.IndexOf(tagName) <> -1 And Not isSelfClosing Then
+		    // Parse raw content until the closing tag.
+		    ParseRawTextContent(node, tagName)
+		    
+		  ElseIf VoidTags.IndexOf(tagName) <> -1 Then
 		    node.IsSelfClosing = True
+		    
 		  ElseIf Not isSelfClosing Then
 		    // Set as the current node if not self-closing.
 		    mCurrentNode = node
 		    mOpenTags.Add(tagName)
 		    node.IsSelfClosing = False
+		    
 		  Else
 		    node.IsSelfClosing = True
+		  End If
+		  
+		End Sub
+	#tag EndMethod
+
+	#tag Method, Flags = &h21, Description = 5061727365732074686520726177207465787420636F6E74656E74206F662061206E6F64652028652E673A2061203C7363726970743E206F72203C7374796C653E206E6F6465292E
+		Private Sub ParseRawTextContent(parentNode As HTMLNode, tagName As String)
+		  /// Parses the raw text content of a node (e.g: a <script> or <style> node).
+		  
+		  Var startPos As Integer = mPosition
+		  Var closingTag As String = "</" + tagName
+		  Var content As String = ""
+		  
+		  // Look for the closing tag.
+		  While mPosition < mLength
+		    // Check if we found a potential closing tag.
+		    If mHTML.Middle(mPosition, closingTag.Length).Lowercase = closingTag Then
+		      // Check if it's followed by ">" or whitespace.
+		      Var nextPos As Integer = mPosition + closingTag.Length
+		      If nextPos >= mLength Then Exit
+		      
+		      Var nextChar As String = mHTML.Middle(nextPos, 1)
+		      If nextChar = ">" Or nextChar = " " Or nextChar = Chr(9) Or nextChar = Chr(10) Or nextChar = Chr(13) Then
+		        // Found a valid closing tag.
+		        content = mHTML.Middle(startPos, mPosition - startPos)
+		        
+		        // Skip the closing tag.
+		        mPosition = mPosition + closingTag.Length
+		        While mPosition < mLength And mHTML.Middle(mPosition, 1) <> ">"
+		          mPosition = mPosition + 1
+		        Wend
+		        
+		        If mPosition < mLength Then
+		          mPosition = mPosition + 1 // Skip ">".
+		        End If
+		        
+		        Exit
+		      End If
+		    End If
+		    
+		    mPosition = mPosition + 1
+		  Wend
+		  
+		  // If we didn't find a closing tag, use everything until the end.
+		  If content = "" And mPosition >= mLength Then
+		    content = mHTML.Middle(startPos, mLength - startPos)
+		  End If
+		  
+		  // Add the content as a text node (or CDATA if it contains CDATA markers).
+		  If content <> "" Then
+		    // Check if the content contains CDATA sections. If so, parse them.
+		    If content.IndexOf("<![CDATA[") <> -1 Then
+		      ParseMixedCDATAContent(parentNode, content)
+		    Else
+		      Var textNode As New HTMLNode(HTMLNode.Types.Text)
+		      textNode.Content = content // We don't decode entities in raw text tags (e.g: <script> and <style> nodes).
+		      parentNode.AddChild(textNode)
+		    End If
 		  End If
 		  
 		End Sub
@@ -353,6 +644,12 @@ Protected Class HTMLParser
 		  mPosition = mPosition + 1
 		  
 		  If mPosition >= mLength Then Return
+		  
+		  // Check for CDATA section
+		  If PeekString(8) = "![CDATA[" Then
+		    ParseCDATA
+		    Return
+		  End If
 		  
 		  // Check for a comment.
 		  If PeekString(3) = "!--" Then
@@ -444,6 +741,17 @@ Protected Class HTMLParser
 		End Function
 	#tag EndMethod
 
+	#tag Method, Flags = &h1, Description = 52657475726E73206120737461746963206172726179207768657265206561636820656C656D656E742069732061207461672077686F7365207465787420636F6E74656E742073686F756C6420626520747265617465642061732072617720746578742E
+		Protected Shared Function RawTextTags() As String()
+		  /// Returns a static array where each element is a tag whose text content should be treated as raw text.
+		  
+		  Static rtt() As String = Array("script", "style")
+		  
+		  Return rtt
+		  
+		End Function
+	#tag EndMethod
+
 	#tag Method, Flags = &h21, Description = 536B697073206F766572207768697465737061636520636861726163746572732E
 		Private Sub SkipWhitespace()
 		  /// Skips over whitespace characters.
@@ -482,6 +790,18 @@ Protected Class HTMLParser
 			End Get
 		#tag EndGetter
 		Protected Shared AutoCloseTags As Dictionary
+	#tag EndComputedProperty
+
+	#tag ComputedProperty, Flags = &h1, Description = 4D61707320656E74697479206E616D657320746F207468656972206368617261637465722076616C756520284B6579203D20656E74697479206E616D652028537472696E67292C2056616C7565203D206368617261637465722028537472696E6729292E
+		#tag Getter
+			Get
+			  Static d As Dictionary = InitialiseEntityMap
+			  
+			  Return d
+			  
+			End Get
+		#tag EndGetter
+		Protected Shared EntityMap As Dictionary
 	#tag EndComputedProperty
 
 	#tag Property, Flags = &h1

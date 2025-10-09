@@ -76,6 +76,15 @@ Protected Class HTMLNode
 		  Var result As String
 		  
 		  Select Case Self.Type
+		  Case HTMLNode.Types.CDATA
+		    result = spaces + "[CDATA: " + Content + "]" + EndOfLine
+		    
+		  Case HTMLNode.Types.Comment
+		    result = spaces + "<!-- " + Content + " -->" + EndOfLine
+		    
+		  Case HTMLNode.Types.DocType
+		    result = spaces + "<!DOCTYPE " + Content + ">" + EndOfLine
+		    
 		  Case HTMLNode.Types.Text
 		    result = spaces + "[TEXT: " + Content.ReplaceAll(EndOfLine, " ") + "]" + EndOfLine
 		    
@@ -100,12 +109,6 @@ Protected Class HTMLNode
 		    If Not IsSelfClosing Then
 		      result = result + spaces + "</" + TagName + ">" + EndOfLine
 		    End If
-		    
-		  Case HTMLNode.Types.Comment
-		    result = spaces + "<!-- " + Content + " -->" + EndOfLine
-		    
-		  Case HTMLNode.Types.DocType
-		    result = spaces + "<!DOCTYPE " + Content + ">" + EndOfLine
 		  End Select
 		  
 		  Return result
@@ -166,7 +169,8 @@ Protected Class HTMLNode
 
 
 	#tag Enum, Name = Types, Type = Integer, Flags = &h0
-		Comment
+		CDATA
+		  Comment
 		  DocType
 		  Element
 		Text
