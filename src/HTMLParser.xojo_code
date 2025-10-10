@@ -10,7 +10,7 @@ Protected Class HTMLParser
 		  // Add a context snippet.
 		  Var contextStart As Integer = Max(0, mPosition - 20)
 		  Var contextEnd As Integer = Min(mLength, mPosition + 20)
-		  e.Context = "..." + mHTML.Middle(contextStart, contextEnd - contextStart) + "..."
+		  e.Context = mHTML.Middle(contextStart, contextEnd - contextStart)
 		  
 		  mErrors.Add(e)
 		  
@@ -710,9 +710,15 @@ Protected Class HTMLParser
 		    For i As Integer = mOpenTags.LastIndex DownTo foundIndex + 1
 		      skipped.Add(mOpenTags(i))
 		    Next
+		    Var message As String
+		    If skipped.Count = 1 Then
+		      message = "unclosed " + skipped(0) + " tag"
+		    Else
+		      message = skipped.Count.ToString + "unclosed tags (of type " + String.FromArray(skipped, " ") + ")"
+		    End If
+		    
 		    AddError(HTMLParserException.Types.InvalidNesting, _
-		    "Closing tag </" + tagName + "> skips unclosed tags: " + _
-		    String.FromArray(skipped, ", "), HTMLParserException.Severities.Warning)
+		    "Closing tag </" + tagName + "> found before " + message, HTMLParserException.Severities.Warning)
 		  End If
 		  
 		  CloseTag(tagName)
