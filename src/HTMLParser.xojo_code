@@ -26,10 +26,23 @@ Protected Class HTMLParser
 		Private Sub AdvancePosition(count As Integer = 1)
 		  /// Updates position tracking.
 		  
+		  ' For i As Integer = 1 To count
+		  ' If mPosition < mLength Then
+		  ' If mHTML.Middle(mPosition, 1) = Chr(10) Then
+		  ' mLineNumber = mLineNumber + 1
+		  ' mColumnNumber = 1
+		  ' Else
+		  ' mColumnNumber = mColumnNumber + 1
+		  ' End If
+		  ' mPosition = mPosition + 1
+		  ' End If
+		  ' Next i
+		  
 		  For i As Integer = 1 To count
 		    If mPosition < mLength Then
-		      If mHTML.Middle(mPosition, 1) = Chr(10) Then
-		        mLineNumber = mLineNumber + 1
+		      #Pragma Warning "FIX: Should we standardise the HTML to have Chr(10) line endings?"
+		      If mChars(mPosition) = Chr(10) Then
+		        mLineNumber   = mLineNumber + 1
 		        mColumnNumber = 1
 		      Else
 		        mColumnNumber = mColumnNumber + 1
@@ -406,10 +419,16 @@ Protected Class HTMLParser
 		End Function
 	#tag EndMethod
 
-	#tag Method, Flags = &h0
+	#tag Method, Flags = &h0, Description = 5061727365732048544D4C20696E746F20612074726565206F662048544D4C206E6F6465732E
 		Function Parse(html As String) As HTMLNode
-		  // Initialise.
-		  mHTML = html
+		  /// Parses HTML into a tree of HTML nodes.
+		  
+		  // Standardise the HTML to have UNIX line endings.
+		  mHTML = html.ReplaceLineEndings(EndOfLine.UNIX)
+		  
+		  // Split the HTML into characters for faster processing.
+		  mChars = mHTML.Characters
+		  
 		  mPosition = 0
 		  mLength = html.Length
 		  mLineNumber = 1
@@ -485,7 +504,7 @@ Protected Class HTMLParser
 		  
 		  While mPosition < mLength
 		    Var c As String = PeekChar
-		    If c = "=" Or c = " " Or c = "/" Or c = ">" Or c = Chr(9) Or c = Chr(10) Or c = Chr(13) Then
+		    If c = "=" Or c = " " Or c = "/" Or c = ">" Or c = Chr(9) Or c = EndOfLine.UNIX Then
 		      Exit
 		    End If
 		    mPosition = mPosition + 1
@@ -525,7 +544,7 @@ Protected Class HTMLParser
 		    
 		    While mPosition < mLength
 		      Var c As String = PeekChar
-		      If c = " " Or c = ">" Or c = Chr(9) Or c = Chr(10) Or c = Chr(13) Then
+		      If c = " " Or c = ">" Or c = Chr(9) Or c = EndOfLine.UNIX Then
 		        Exit
 		      End If
 		      mPosition = mPosition + 1
@@ -579,7 +598,7 @@ Protected Class HTMLParser
 		    Var startPos As Integer = mPosition
 		    While mPosition < mLength
 		      Var c As String = PeekChar()
-		      If c = " " Or c = ">" Or c = Chr(9) Or c = Chr(10) Or c = Chr(13) Then
+		      If c = " " Or c = ">" Or c = Chr(9) Or c = EndOfLine.UNIX Then
 		        Exit
 		      End If
 		      AdvancePosition
@@ -976,7 +995,7 @@ Protected Class HTMLParser
 		      If nextPos >= mLength Then Exit
 		      
 		      Var nextChar As String = mHTML.Middle(nextPos, 1)
-		      If nextChar = ">" Or nextChar = " " Or nextChar = Chr(9) Or nextChar = Chr(10) Or nextChar = Chr(13) Then
+		      If nextChar = ">" Or nextChar = " " Or nextChar = Chr(9) Or nextChar = EndOfLine.UNIX Then
 		        // Found a valid closing tag.
 		        content = mHTML.Middle(startPos, mPosition - startPos)
 		        
@@ -1068,7 +1087,7 @@ Protected Class HTMLParser
 		  
 		  While mPosition < mLength
 		    Var c As String = PeekChar
-		    If c = " " Or c = "/" Or c = ">" Or c = Chr(9) Or c = Chr(10) Or c = Chr(13) Then
+		    If c = " " Or c = "/" Or c = ">" Or c = Chr(9) Or c = EndOfLine.UNIX Then
 		      Exit
 		    End If
 		    mPosition = mPosition + 1
@@ -1105,7 +1124,7 @@ Protected Class HTMLParser
 		  /// Returns the current character without advancing the position.
 		  /// Returns an empty string if we've reached the end of the HTML we're parsing.
 		  
-		  If mPosition < mLength Then Return mHTML.Middle(mPosition, 1)
+		  If mPosition < mLength Then Return mChars(mPosition)
 		  
 		  Return ""
 		  
@@ -1115,6 +1134,8 @@ Protected Class HTMLParser
 	#tag Method, Flags = &h21
 		Private Function PeekString(length As Integer) As String
 		  /// Peeks at the specified number of characters without advancing the position.
+		  
+		  #Pragma Warning "OPTIMISE: Could this use the mChars array?"
 		  
 		  If mPosition + length <= mLength Then Return mHTML.Middle(mPosition, length)
 		  
@@ -1150,10 +1171,8 @@ Protected Class HTMLParser
 		  /// Skips over whitespace characters.
 		  
 		  While mPosition < mLength
-		    Var c As String = PeekChar()
-		    If c <> " " And c <> Chr(9) And c <> Chr(10) And c <> Chr(13) Then
-		      Exit
-		    End If
+		    Var c As String = mChars(mPosition)
+		    If c <> " " And c <> Chr(9) And c <> EndOfLine.UNIX Then Exit
 		    mPosition = mPosition + 1
 		  Wend
 		  
@@ -1237,6 +1256,10 @@ Protected Class HTMLParser
 		#tag EndGetter
 		Protected Shared EntityMap As Dictionary
 	#tag EndComputedProperty
+
+	#tag Property, Flags = &h1
+		Protected mChars() As String
+	#tag EndProperty
 
 	#tag Property, Flags = &h1
 		Protected mColumnNumber As Integer

@@ -374,8 +374,7 @@ Protected Class HTMLNode
 		  
 		  // Replace tabs and newlines with spaces.
 		  result = result.ReplaceAll(Chr(9), " ")
-		  result = result.ReplaceAll(Chr(10), " ")
-		  result = result.ReplaceAll(Chr(13), " ")
+		  result = result.ReplaceAll(EndOfLine.UNIX, " ")
 		  
 		  // Collapse multiple spaces.
 		  While result.IndexOf("  ") <> -1

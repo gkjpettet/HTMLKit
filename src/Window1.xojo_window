@@ -105,6 +105,7 @@ End
 		  report = "Took " + watch.ElapsedMilliseconds.ToString + " ms to parse." + EndOfLine + EndOfLine + report
 		  
 		  // About 103 ms original version.
+		  // About 14 ms oss120b version.
 		  
 		  Break
 		End Sub
