@@ -10,7 +10,7 @@ Protected Class HTMLParser
 		  // Add a context snippet.
 		  Var contextStart As Integer = Max(0, mPosition - 30)
 		  Var contextEnd As Integer = Min(mLength, mPosition + 30)
-		  e.Context = mHTML.Middle(contextStart, contextEnd - contextStart)
+		  e.Context = SubString(contextStart, contextEnd - contextStart)
 		  
 		  mErrors.Add(e)
 		  
@@ -437,6 +437,7 @@ Protected Class HTMLParser
 		  mPosition = 0
 		  mLength = html.Length
 		  mCharsLastIndex = mChars.LastIndex
+		  mCharsCount = mChars.Count
 		  mLineNumber = 1
 		  mColumnNumber = 1
 		  mErrors.ResizeTo(-1)
@@ -519,7 +520,7 @@ Protected Class HTMLParser
 		  
 		  Var startPos As Integer = mPosition
 		  
-		  While mPosition < mLength
+		  While mPosition < mCharsCount
 		    Var c As String = PeekChar
 		    Select Case c
 		    Case "=", " ", "/", ">", "<", Chr(9), EndOfLine.UNIX
@@ -528,7 +529,7 @@ Protected Class HTMLParser
 		    Advance
 		  Wend
 		  
-		  Return mHTML.Middle(startPos, mPosition - startPos)
+		  Return SubString(startPos, mPosition - startPos)
 		  
 		End Function
 	#tag EndMethod
@@ -544,11 +545,11 @@ Protected Class HTMLParser
 		    Advance
 		    Var startPos As Integer = mPosition
 		    
-		    While mPosition < mLength And PeekChar() <> quote
+		    While mPosition < mCharsCount And PeekChar <> quote
 		      Advance
 		    Wend
 		    
-		    Var value As String = mHTML.Middle(startPos, mPosition - startPos)
+		    Var value As String = SubString(startPos, mPosition - startPos)
 		    
 		    If PeekChar = quote Then Advance
 		    
@@ -558,7 +559,7 @@ Protected Class HTMLParser
 		    // This is a non-quoted value.
 		    Var startPos As Integer = mPosition
 		    
-		    While mPosition < mLength
+		    While mPosition < mCharsCount
 		      Var c As String = PeekChar
 		      If c = " " Or c = ">" Or c = Chr(9) Or c = EndOfLine.UNIX Then
 		        Exit
@@ -566,7 +567,7 @@ Protected Class HTMLParser
 		      Advance
 		    Wend
 		    
-		    Return mHTML.Middle(startPos, mPosition - startPos)
+		    Return SubString(startPos, mPosition - startPos)
 		  End If
 		  
 		End Function
@@ -586,7 +587,7 @@ Protected Class HTMLParser
 		    Var startPos As Integer = mPosition
 		    Var foundClosingQuote As Boolean = False
 		    
-		    While mPosition < mLength
+		    While mPosition < mCharsCount
 		      If PeekChar() = quote Then
 		        foundClosingQuote = True
 		        Exit
@@ -594,7 +595,7 @@ Protected Class HTMLParser
 		      Advance
 		    Wend
 		    
-		    Var value As String = mHTML.Middle(startPos, mPosition - startPos)
+		    Var value As String = SubString(startPos, mPosition - startPos)
 		    
 		    If foundClosingQuote Then
 		      Advance // Skip the closing quote.
@@ -612,15 +613,15 @@ Protected Class HTMLParser
 		    End If
 		    
 		    Var startPos As Integer = mPosition
-		    While mPosition < mLength
-		      Var c As String = PeekChar()
+		    While mPosition < mCharsCount
+		      Var c As String = PeekChar
 		      If c = " " Or c = ">" Or c = Chr(9) Or c = EndOfLine.UNIX Then
 		        Exit
 		      End If
 		      Advance
 		    Wend
 		    
-		    Return mHTML.Middle(startPos, mPosition - startPos)
+		    Return SubString(startPos, mPosition - startPos)
 		  End If
 		  
 		End Function
@@ -672,10 +673,10 @@ Protected Class HTMLParser
 		  Var content As String = ""
 		  
 		  // Look for the closing "]]>".
-		  While mPosition < mLength - 2
-		    If mHTML.Middle(mPosition, 3) = "]]>" Then
+		  While mPosition < mCharsCount - 2
+		    If SubString(mPosition, 3) = "]]>" Then
 		      // Found the end of the CDATA section.
-		      content = mHTML.Middle(startPos, mPosition - startPos)
+		      content = SubString(startPos, mPosition - startPos)
 		      
 		      // Skip the "]]>".
 		      AdvancePosition(3)
@@ -694,7 +695,7 @@ Protected Class HTMLParser
 		  Wend
 		  
 		  // This is an unclosed CDATA section - treat the rest of the document as CDATA.
-		  content = mHTML.Middle(startPos, mLength - startPos)
+		  content = SubString(startPos, mLength - startPos)
 		  Var cdataNode As New HTMLNode(HTMLNode.Types.CDATA)
 		  cdataNode.Content = content
 		  mCurrentNode.AddChild(cdataNode)
@@ -710,7 +711,7 @@ Protected Class HTMLParser
 		  Var tagName As String = ParseTagName.Lowercase
 		  
 		  // Skip to ">".
-		  While mPosition < mLength And PeekChar <> ">"
+		  While mPosition < mCharsCount And PeekChar <> ">"
 		    Advance
 		  Wend
 		  If PeekChar = ">" Then
@@ -768,9 +769,9 @@ Protected Class HTMLParser
 		  AdvancePosition(3) // Skip "!--"
 		  Var startPos As Integer = mPosition
 		  
-		  While mPosition < mLength - 2
-		    If mHTML.Middle(mPosition, 3) = "-->" Then
-		      Var comment As String = mHTML.Middle(startPos, mPosition - startPos)
+		  While mPosition < mCharsCount - 2
+		    If SubString(mPosition, 3) = "-->" Then
+		      Var comment As String = SubString(startPos, mPosition - startPos)
 		      Var commentNode As New HTMLNode(HTMLNode.Types.Comment)
 		      commentNode.Content = comment
 		      mCurrentNode.AddChild(commentNode)
@@ -781,7 +782,7 @@ Protected Class HTMLParser
 		  Wend
 		  
 		  // Unclosed comment, add what we have...
-		  Var comment As String = mHTML.Middle(startPos, mLength - startPos)
+		  Var comment As String = SubString(startPos, mLength - startPos)
 		  Var commentNode As New HTMLNode(HTMLNode.Types.Comment)
 		  commentNode.Content = comment
 		  mCurrentNode.AddChild(commentNode)
@@ -796,11 +797,11 @@ Protected Class HTMLParser
 		  SkipWhitespace
 		  
 		  Var startPos As Integer = mPosition
-		  While mPosition < mLength And PeekChar <> ">"
+		  While mPosition < mCharsCount And PeekChar <> ">"
 		    Advance
 		  Wend
 		  
-		  Var doctype As String = mHTML.Middle(startPos, mPosition - startPos).Trim
+		  Var doctype As String = SubString(startPos, mPosition - startPos).Trim
 		  Var doctypeNode As New HTMLNode(HTMLNode.Types.DocType)
 		  doctypeNode.Content = doctype
 		  mCurrentNode.AddChild(doctypeNode)
@@ -921,7 +922,7 @@ Protected Class HTMLParser
 		  SkipWhitespace
 		  Var seenAttributes As New Dictionary
 		  Var prematureTagFound As Boolean = False
-		  While mPosition < mLength And PeekChar <> ">" And PeekChar <> "/"
+		  While mPosition < mCharsCount And PeekChar <> ">" And PeekChar <> "/"
 		    If PeekChar = "<" Then
 		      AddError(HTMLParserException.Types.MalformedTag, _
 		      "Missing `>` for tag <" + tagName + "> before a new tag was encountered", HTMLParserException.Severities.Error)
@@ -1016,26 +1017,26 @@ Protected Class HTMLParser
 		  Var content As String = ""
 		  
 		  // Look for the closing tag.
-		  While mPosition < mLength
+		  While mPosition < mCharsCount
 		    // Check if we found a potential closing tag.
-		    If mHTML.Middle(mPosition, closingTag.Length).Lowercase = closingTag Then
+		    If SubString(mPosition, closingTag.Length).Lowercase = closingTag Then
 		      // Check if it's followed by ">" or whitespace.
 		      Var nextPos As Integer = mPosition + closingTag.Length
-		      If nextPos >= mLength Then Exit
+		      If nextPos >= mCharsCount Then Exit
 		      
 		      Var nextChar As String = mHTML.Middle(nextPos, 1)
 		      If nextChar = ">" Or nextChar = " " Or nextChar = Chr(9) Or nextChar = EndOfLine.UNIX Then
 		        // Found a valid closing tag.
-		        content = mHTML.Middle(startPos, mPosition - startPos)
+		        content = SubString(startPos, mPosition - startPos)
 		        
 		        // Skip the closing tag.
 		        AdvancePosition(closingTag.Length)
-		        While mPosition < mLength And mHTML.Middle(mPosition, 1) <> ">"
+		        While mPosition < mCharsCount And SubString(mPosition, 1) <> ">"
 		          Advance
 		        Wend
 		        
 		        // Skip ">".
-		        If mPosition < mLength Then Advance
+		        If mPosition < mCharsCount Then Advance
 		        
 		        Exit
 		      End If
@@ -1045,8 +1046,8 @@ Protected Class HTMLParser
 		  Wend
 		  
 		  // If we didn't find a closing tag, use everything until the end.
-		  If content = "" And mPosition >= mLength Then
-		    content = mHTML.Middle(startPos, mLength - startPos)
+		  If content = "" And mPosition >= mCharsCount Then
+		    content = SubString(startPos, mLength - startPos)
 		  End If
 		  
 		  // Add the content as a text node (or CDATA if it contains CDATA markers).
@@ -1072,11 +1073,11 @@ Protected Class HTMLParser
 		  // Skip the "<".
 		  Advance
 		  
-		  If mPosition >= mLength Then Return
+		  If mPosition >= mCharsCount Then Return
 		  
 		  // Check for CDATA section
 		  If hasCDATA Then
-		    If mHTML.Middle(mPosition, 8) = "![CDATA[" Then
+		    If SubString(mPosition, 8) = "![CDATA[" Then
 		      ParseCDATA
 		      Return
 		    End If
@@ -1084,7 +1085,7 @@ Protected Class HTMLParser
 		  
 		  // Check for a comment.
 		  If hasHTMLComments Then
-		    If mHTML.Middle(mPosition, 3) = "!--" Then
+		    If SubString(mPosition, 3) = "!--" Then
 		      ParseComment
 		      Return
 		    End If
@@ -1092,7 +1093,7 @@ Protected Class HTMLParser
 		  
 		  // Check for DOCTYPE.
 		  If hasDocType And Not seenDocType Then
-		    If mHTML.Middle(mPosition, 8) = "!DOCTYPE" Then
+		    If SubString(mPosition, 8) = "!DOCTYPE" Then
 		      ParseDoctype
 		      Return
 		    End If
@@ -1119,7 +1120,7 @@ Protected Class HTMLParser
 		  
 		  Var startPos As Integer = mPosition
 		  
-		  While mPosition < mLength
+		  While mPosition < mCharsCount
 		    Var c As String = PeekChar
 		    If c = " " Or c = "/" Or c = ">" Or c = Chr(9) Or c = EndOfLine.UNIX Then
 		      Exit
@@ -1127,7 +1128,7 @@ Protected Class HTMLParser
 		    Advance
 		  Wend
 		  
-		  Return mHTML.Middle(startPos, mPosition - startPos)
+		  Return SubString(startPos, mPosition - startPos)
 		  
 		End Function
 	#tag EndMethod
@@ -1142,7 +1143,7 @@ Protected Class HTMLParser
 		    Advance
 		  Wend
 		  
-		  Var t As String = mHTML.Middle(startPos, mPosition - startPos)
+		  Var t As String = SubString(startPos, mPosition - startPos)
 		  
 		  If t.Trim <> "" Then
 		    Var textNode As New HTMLNode(HTMLNode.Types.Text)
@@ -1169,9 +1170,7 @@ Protected Class HTMLParser
 		Private Function PeekString(length As Integer) As String
 		  /// Peeks at the specified number of characters without advancing the position.
 		  
-		  #Pragma Warning "OPTIMISE: Could this use the mChars array?"
-		  
-		  If mPosition + length <= mLength Then Return mHTML.Middle(mPosition, length)
+		  If mPosition + length <= mCharsCount Then Return SubString(mPosition, length)
 		  
 		  Return ""
 		  
@@ -1211,6 +1210,37 @@ Protected Class HTMLParser
 		  Wend
 		  
 		End Sub
+	#tag EndMethod
+
+	#tag Method, Flags = &h21, Description = 52657475726E73206120737472696E672066726F6D20746865206D436861727320617272617920626567696E6E696E6720617420607374617274506F736020666F7220606C656E6774686020636861726163746572732E2052657475726E732022222069662062616420706172616D65746572732E2052657475726E732066726F6D20607374617274506F736020746F2074686520656E64206F662074686520617272617920696620606C656E6774686020697320746F6F2067726561742E
+		Private Function SubString(startPos As Integer, length As Integer) As String
+		  /// Returns a string from the mChars array beginning at `startPos` for `length` characters.
+		  /// Returns "" if bad parameters.
+		  /// Returns from `startPos` to the end of the array if `length` is too great.
+		  
+		  If mCharsCount = mLength Then
+		    // There are no funny characters in the `mChars` array so we can use Xojo's optimised `String.Middle()` method.
+		    Return mHTML.Middle(startPos, length)
+		  Else
+		    // There are odd characters in `mChars` so we need to use a slower array-based method.
+		    If startPos < 0 Or startPos >= mCharsLastIndex Or length <=0 Then Return ""
+		    
+		    Var endPos As Integer = Min(startPos + length, mCharsCount)
+		    Var actualLength As Integer = endPos - startPos
+		    
+		    If actualLength <= 0 Then Return ""
+		    
+		    // Extract the slice of characters.
+		    Var chars() As String
+		    chars.ResizeTo(actualLength - 1)
+		    Var iLimit As Integer = chars.LastIndex
+		    For i As Integer = 0 To iLimit
+		      chars(i) = mChars(startPos + i)
+		    Next
+		    
+		    Return String.FromArray(chars, "")
+		  End If
+		End Function
 	#tag EndMethod
 
 	#tag Method, Flags = &h21, Description = 56616C6964617465207370656369666963206174747269627574652076616C7565732E
@@ -1305,6 +1335,10 @@ Protected Class HTMLParser
 
 	#tag Property, Flags = &h1
 		Protected mChars() As String
+	#tag EndProperty
+
+	#tag Property, Flags = &h1
+		Protected mCharsCount As Integer = 0
 	#tag EndProperty
 
 	#tag Property, Flags = &h1
