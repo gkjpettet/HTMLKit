@@ -11,6 +11,7 @@ Inherits RuntimeException
 		  Self.Column = column
 		  Self.Severity = severity
 		  
+		  
 		End Sub
 	#tag EndMethod
 
@@ -206,8 +207,75 @@ Inherits RuntimeException
 			Visible=false
 			Group="Behavior"
 			InitialValue=""
+			Type="HTMLParserException.Types"
+			EditorType="Enum"
+			#tag EnumValues
+				"0 - UnclosedTag"
+				"1 - UnmatchedClosingTag"
+				"2 - MalformedTag"
+				"3 - InvalidAttribute"
+				"4 - UnclosedComment"
+				"5 - UnclosedCDATA"
+				"6 - DuplicateID"
+				"7 - InvalidNesting"
+				"8 - MissingRequiredAttribute"
+				"9 - DeprecatedTag"
+				"10 - InvalidCharacter"
+				"11 - UnclosedQuote"
+			#tag EndEnumValues
+		#tag EndViewProperty
+		#tag ViewProperty
+			Name="Column"
+			Visible=false
+			Group="Behavior"
+			InitialValue="0"
 			Type="Integer"
 			EditorType=""
+		#tag EndViewProperty
+		#tag ViewProperty
+			Name="Context"
+			Visible=false
+			Group="Behavior"
+			InitialValue=""
+			Type="String"
+			EditorType="MultiLineEditor"
+		#tag EndViewProperty
+		#tag ViewProperty
+			Name="Line"
+			Visible=false
+			Group="Behavior"
+			InitialValue="0"
+			Type="Integer"
+			EditorType=""
+		#tag EndViewProperty
+		#tag ViewProperty
+			Name="Severity"
+			Visible=false
+			Group="Behavior"
+			InitialValue="HTMLParserException.Severities.Warning"
+			Type="HTMLParserException.Severities"
+			EditorType="Enum"
+			#tag EnumValues
+				"0 - Warning"
+				"1 - Info"
+				"2 - Error"
+			#tag EndEnumValues
+		#tag EndViewProperty
+		#tag ViewProperty
+			Name="SeverityString"
+			Visible=false
+			Group="Behavior"
+			InitialValue=""
+			Type="String"
+			EditorType="MultiLineEditor"
+		#tag EndViewProperty
+		#tag ViewProperty
+			Name="TagName"
+			Visible=false
+			Group="Behavior"
+			InitialValue=""
+			Type="String"
+			EditorType="MultiLineEditor"
 		#tag EndViewProperty
 	#tag EndViewBehavior
 End Class

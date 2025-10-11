@@ -52,57 +52,9 @@ Begin DesktopWindow Window1
       Top             =   52
       Transparent     =   False
       Underline       =   False
-      Value           =   1
+      Value           =   2
       Visible         =   True
       Width           =   1044
-      Begin DesktopTextArea ValidationReport
-         AllowAutoDeactivate=   True
-         AllowFocusRing  =   True
-         AllowSpellChecking=   True
-         AllowStyledText =   True
-         AllowTabs       =   False
-         BackgroundColor =   &cFFFFFF
-         Bold            =   False
-         Enabled         =   True
-         FontName        =   "System"
-         FontSize        =   0.0
-         FontUnit        =   0
-         Format          =   ""
-         HasBorder       =   True
-         HasHorizontalScrollbar=   False
-         HasVerticalScrollbar=   True
-         Height          =   636
-         HideSelection   =   True
-         Index           =   -2147483648
-         InitialParent   =   "TabPanel1"
-         Italic          =   False
-         Left            =   40
-         LineHeight      =   0.0
-         LineSpacing     =   1.0
-         LockBottom      =   True
-         LockedInPosition=   False
-         LockLeft        =   True
-         LockRight       =   True
-         LockTop         =   True
-         MaximumCharactersAllowed=   0
-         Multiline       =   True
-         ReadOnly        =   False
-         Scope           =   0
-         TabIndex        =   0
-         TabPanelIndex   =   3
-         TabStop         =   True
-         Text            =   ""
-         TextAlignment   =   0
-         TextColor       =   &c000000
-         Tooltip         =   ""
-         Top             =   90
-         Transparent     =   False
-         Underline       =   False
-         UnicodeMode     =   1
-         ValidationMask  =   ""
-         Visible         =   True
-         Width           =   1004
-      End
       Begin DesktopTextArea HTMLField
          AllowAutoDeactivate=   True
          AllowFocusRing  =   True
@@ -190,6 +142,54 @@ Begin DesktopWindow Window1
          Scope           =   0
          TabIndex        =   0
          TabPanelIndex   =   2
+         TabStop         =   True
+         Tooltip         =   ""
+         Top             =   90
+         Transparent     =   False
+         Underline       =   False
+         Visible         =   True
+         Width           =   1004
+         _ScrollWidth    =   -1
+      End
+      Begin DesktopListBox ValidationReport
+         AllowAutoDeactivate=   True
+         AllowAutoHideScrollbars=   True
+         AllowExpandableRows=   True
+         AllowFocusRing  =   False
+         AllowResizableColumns=   False
+         AllowRowDragging=   False
+         AllowRowReordering=   False
+         Bold            =   False
+         ColumnCount     =   4
+         ColumnWidths    =   "120, 70, 60, *"
+         DefaultRowHeight=   -1
+         DropIndicatorVisible=   False
+         Enabled         =   True
+         FontName        =   "System"
+         FontSize        =   0.0
+         FontUnit        =   0
+         GridLineStyle   =   0
+         HasBorder       =   True
+         HasHeader       =   True
+         HasHorizontalScrollbar=   False
+         HasVerticalScrollbar=   True
+         HeadingIndex    =   -1
+         Height          =   636
+         Index           =   -2147483648
+         InitialParent   =   "TabPanel1"
+         InitialValue    =   "Type	Line	Column	Message"
+         Italic          =   False
+         Left            =   40
+         LockBottom      =   True
+         LockedInPosition=   False
+         LockLeft        =   True
+         LockRight       =   True
+         LockTop         =   True
+         RequiresSelection=   False
+         RowSelectionType=   0
+         Scope           =   0
+         TabIndex        =   0
+         TabPanelIndex   =   3
          TabStop         =   True
          Tooltip         =   ""
          Top             =   90
@@ -314,7 +314,7 @@ End
 		  
 		  // Non-strict mode.
 		  Parser = New HTMLParser(False)
-		  Var html As String = TEST_GARRYPETTET_HTML
+		  Var html As String = TEST_WIKIPEDIA
 		  
 		  HTMLField.Text = html
 		  
@@ -324,11 +324,7 @@ End
 		  Var doc As HTMLNode = Parser.Parse(html)
 		  watch.Stop
 		  
-		  Var report As String = GenerateValidationReport(Parser.Issues)
-		  
-		  report = "Took " + watch.ElapsedMilliseconds.ToString + " ms to parse." + EndOfLine + EndOfLine + report
-		  
-		  ValidationReport.Text = report
+		  UpdateValidationReport(Parser.Issues)
 		  
 		  If doc <> Nil Then
 		    MyNodeBrowser.AddRoot(doc)
@@ -337,42 +333,6 @@ End
 		End Sub
 	#tag EndEvent
 
-
-	#tag Method, Flags = &h21, Description = 47656E65726174657320616E642072657475726E7320616E2048544D4C2076616C69646174696F6E207265706F72742E
-		Private Function GenerateValidationReport(errors() As HTMLParserException) As String
-		  /// Generates and returns a Markdown validation report.
-		  
-		  #Pragma DisableBoundsChecking
-		  #Pragma StackOverflowChecking False
-		  
-		  Var md() As String
-		  
-		  md.Add("# HTML Validation Report")
-		  md.Add("")
-		  
-		  If errors.Count = 0 Then
-		    md.Add("No issues found.")
-		  Else
-		    md.Add(If(errors.Count = 1, "1 issue", errors.Count.ToString + " issues") + " found.")
-		    md.Add("")
-		    md.Add("## Issues")
-		    For Each err As HTMLParserException In errors
-		      md.Add(err.ToString)
-		      If err.Context <> "" Then
-		        md.Add("")
-		        md.Add("```html")
-		        md.Add(err.Context)
-		        md.Add("```")
-		      End If
-		      md.Add("")
-		    Next err
-		  End If
-		  
-		  Var result As String = String.FromArray(md, EndOfLine)
-		  
-		  Return result
-		End Function
-	#tag EndMethod
 
 	#tag Method, Flags = &h21
 		Private Sub TraverseNodes(node As HTMLNode, ByRef result() As String, depth As Integer = 0)
@@ -408,6 +368,50 @@ End
 		    TraverseNodes(child, result, depth + 1)
 		  Next child
 		  
+		End Sub
+	#tag EndMethod
+
+	#tag Method, Flags = &h21, Description = 47656E65726174657320616E642072657475726E7320616E2048544D4C2076616C69646174696F6E207265706F72742E
+		Private Sub UpdateValidationReport(issues() As HTMLParserException)
+		  #Pragma DisableBoundsChecking
+		  #Pragma StackOverflowChecking False
+		  
+		  ValidationReport.RemoveAllRows
+		  
+		  If issues.Count = 0 Then Return
+		  
+		  For Each issue As HTMLParserException In issues
+		    
+		    ValidationReport.AddRow(issue.SeverityString, issue.Line.ToString, issue.Column.ToString, issue.Message)
+		    
+		  Next issue
+		  
+		  ' Var md() As String
+		  ' 
+		  ' md.Add("# HTML Validation Report")
+		  ' md.Add("")
+		  ' 
+		  ' If errors.Count = 0 Then
+		  ' md.Add("No issues found.")
+		  ' Else
+		  ' md.Add(If(errors.Count = 1, "1 issue", errors.Count.ToString + " issues") + " found.")
+		  ' md.Add("")
+		  ' md.Add("## Issues")
+		  ' For Each err As HTMLParserException In errors
+		  ' md.Add(err.ToString)
+		  ' If err.Context <> "" Then
+		  ' md.Add("")
+		  ' md.Add("```html")
+		  ' md.Add(err.Context)
+		  ' md.Add("```")
+		  ' End If
+		  ' md.Add("")
+		  ' Next err
+		  ' End If
+		  ' 
+		  ' Var result As String = String.FromArray(md, EndOfLine)
+		  ' 
+		  ' Return result
 		End Sub
 	#tag EndMethod
 
