@@ -43,6 +43,47 @@ Protected Class HTMLNode
 	#tag EndMethod
 
 	#tag Method, Flags = &h21
+		Private Function ExtractBracketedConditions(theSelector As String) As String()
+		  Var conditions() As String
+		  Var chars() As String = theSelector.Characters
+		  
+		  Var inBracket As Boolean = False
+		  Var currentCondition As String = ""
+		  
+		  For Each char As String In chars
+		    If char = "[" Then
+		      inBracket = True
+		      currentCondition = ""
+		    ElseIf char = "]" Then
+		      If inBracket And currentCondition <> "" Then
+		        conditions.Add(currentCondition)
+		      End If
+		      inBracket = False
+		      currentCondition = ""
+		    ElseIf inBracket Then
+		      currentCondition = currentCondition + char
+		    End If
+		  Next char
+		  
+		  Return conditions
+		  
+		End Function
+	#tag EndMethod
+
+	#tag Method, Flags = &h21, Description = 48656C70657220746F2066696E6420616C6C20656C656D656E74732028666F7220756E6976657273616C2073656C6563746F72292E
+		Private Sub FindAllElements(results() As HTMLNode)
+		  /// Helper to find all elements (for universal selector).
+		  
+		  If Type = Types.Element Then results.Add(Self)
+		  
+		  For Each child As HTMLNode In Children
+		    child.FindAllElements(results)
+		  Next child
+		  
+		End Sub
+	#tag EndMethod
+
+	#tag Method, Flags = &h21
 		Private Sub FindByAttribute(attrSpec As String, results() As HTMLNode)
 		  /// Finds all nodes with the specified attribute and adds them to the passed ByRef `results()` array.
 		  /// 
@@ -210,6 +251,39 @@ Protected Class HTMLNode
 		End Sub
 	#tag EndMethod
 
+	#tag Method, Flags = &h21
+		Private Sub FindComplexMatch(tagName As String, conditions() As String, results() As HTMLNode)
+		  If Type = Types.Element Then
+		    Var matched As Boolean = True
+		    
+		    // Check tag name if specified.
+		    If tagName <> "" And TagName.Lowercase <> tagName.Lowercase Then
+		      matched = False
+		    End If
+		    
+		    // Check all attribute conditions.
+		    If matched Then
+		      For Each condition As String In conditions
+		        If Not MatchesAttributeCondition(condition) Then
+		          matched = False
+		          Exit
+		        End If
+		      Next condition
+		    End If
+		    
+		    If matched Then
+		      results.Add(Self)
+		    End If
+		  End If
+		  
+		  // Check children.
+		  For Each child As HTMLNode In Children
+		    child.FindComplexMatch(tagName, conditions, results)
+		  Next child
+		  
+		End Sub
+	#tag EndMethod
+
 	#tag Method, Flags = &h0, Description = 46696E647320616E642072657475726E732074686520666972737420616E636573746F72207769746820676976656E2074686520746167206E616D65206F72204E696C206966206E6F6E6520666F756E642E
 		Function GetAncestor(tagName As String) As HTMLNode
 		  /// Finds and returns the first ancestor with given the tag name or Nil if none found.
@@ -366,6 +440,67 @@ Protected Class HTMLNode
 		End Function
 	#tag EndMethod
 
+	#tag Method, Flags = &h21, Description = 546869732075736573207468652073616D65206C6F6769632041732046696E644279417474726962757465206275742072657475726E73206120626F6F6C65616E20696E7374656164206F6620616464696E6720746F20726573756C74732E
+		Private Function MatchesAttributeCondition(condition As String) As Boolean
+		  /// This uses the same logic As FindByAttribute but returns a boolean instead of adding to results.
+		  
+		  If condition.Contains("*=") Then
+		    Var parts() As String = condition.Split("*=")
+		    If parts.Count = 2 Then
+		      Var attrName As String = parts(0).Trim
+		      Var attrValue As String = StripQuotes(parts(1).Trim)
+		      Return AttributeValue(attrName).Contains(attrValue)
+		    End If
+		    
+		  ElseIf condition.Contains("=") Then
+		    Var parts() As String = condition.Split("=")
+		    If parts.Count = 2 Then
+		      Var attrName As String = parts(0).Trim
+		      Var attrValue As String = StripQuotes(parts(1).Trim)
+		      Return AttributeValue(attrName) = attrValue
+		    End If
+		  Else
+		    // Just checking for existence.
+		    Return Attributes_.HasKey(condition.Trim)
+		  End If
+		  
+		  Return False
+		  
+		End Function
+	#tag EndMethod
+
+	#tag Method, Flags = &h21
+		Private Function MatchesSelector(node As HTMLNode, theSelector As String) As Boolean
+		  /// Helper method to check if a node matches a simple selector.
+		  
+		  If node.Type <> Types.Element Then Return False
+		  
+		  theSelector = theSelector.Trim
+		  
+		  // ID selector.
+		  If theSelector.Left(1) = "#" Then
+		    Return node.AttributeValue("id") = theSelector.Middle(1)
+		  End If
+		  
+		  // Class selector.
+		  If theSelector.Left(1) = "." Then
+		    Var className As String = theSelector.Middle(1)
+		    Var classes() As String = node.AttributeValue("class").Split(" ")
+		    Return classes.IndexOf(className) <> -1
+		  End If
+		  
+		  // Attribute selector.
+		  If theSelector.Left(1) = "[" And theSelector.Right(1) = "]" Then
+		    Var attrSpec As String = theSelector.Middle(1, theSelector.Length - 2)
+		    Return MatchesAttributeCondition(attrSpec)
+		  End If
+		  
+		  // Tag selector.
+		  Return node.TagName.Lowercase = theSelector.Lowercase
+		  
+		End Function
+	#tag EndMethod
+
 	#tag Method, Flags = &h0, Description = 5265706C6163657320616C6C20776869746573706163652073657175656E636573207769746820612073696E676C652073706163652E
 		Function NormaliseWhitespace(s As String) As String
 		  /// Replaces all whitespace sequences with a single space.
@@ -411,6 +546,291 @@ Protected Class HTMLNode
 		  End If
 		  
 		  Return result
+		  
+		End Function
+	#tag EndMethod
+
+	#tag Method, Flags = &h21, Description = 48616E646C65732061646A6163656E74207369626C696E672073656C6563746F72732028652E672E2C20226831202B207022202D207020696D6D6564696174656C79206166746572206831292E
+		Private Function QueryAdjacentSiblingSelector(theSelector As String) As HTMLNode()
+		  /// Handles adjacent sibling selectors (e.g., "h1 + p" - p immediately after h1).
+		  
+		  Var results() As HTMLNode
+		  Var parts() As String = theSelector.Split("+")
+		  
+		  If parts.Count <> 2 Then
+		    Return results
+		  End If
+		  
+		  Var firstSelector As String = parts(0).Trim
+		  Var secondSelector As String = parts(1).Trim
+		  
+		  // Find all elements matching the first selector.
+		  Var firstMatches() As HTMLNode = QuerySelectorAll(firstSelector)
+		  
+		  For Each node As HTMLNode In firstMatches
+		    Var nextSibling As HTMLNode = node.GetNextSibling
+		    If nextSibling <> Nil And MatchesSelector(nextSibling, secondSelector) Then
+		      If results.IndexOf(nextSibling) = -1 Then
+		        results.Add(nextSibling)
+		      End If
+		    End If
+		  Next node
+		  
+		  Return results
+		  
+		End Function
+	#tag EndMethod
+
+	#tag Method, Flags = &h21, Description = 48616E646C6573206368696C642073656C6563746F72732028652E672E2C2022646976203E207022202D206469726563742070206368696C6472656E206F6620646976292E
+		Private Function QueryChildSelector(theSelector As String) As HTMLNode()
+		  /// Handles child selectors (e.g., "div > p" - direct p children of div).
+		  
+		  Var results() As HTMLNode
+		  Var parts() As String = theSelector.Split(">")
+		  
+		  If parts.Count < 2 Then
+		    Return QuerySelectorAll(theSelector)
+		  End If
+		  
+		  // Clean and trim parts.
+		  For i As Integer = 0 To parts.LastIndex
+		    parts(i) = parts(i).Trim
+		  Next i
+		  
+		  // Start with the first selector.
+		  Var currentMatches() As HTMLNode = QuerySelectorAll(parts(0))
+		  
+		  // For each subsequent selector, find direct children only.
+		  For i As Integer = 1 To parts.LastIndex
+		    Var nextMatches() As HTMLNode
+		    
+		    For Each parent As HTMLNode In currentMatches
+		      // Only check direct children.
+		      For Each child As HTMLNode In parent.Children
+		        If MatchesSelector(child, parts(i)) Then
+		          If nextMatches.IndexOf(child) = -1 Then
+		            nextMatches.Add(child)
+		          End If
+		        End If
+		      Next child
+		    Next parent
+		    
+		    currentMatches = nextMatches
+		  Next
+		  
+		  Return currentMatches
+		  
+		End Function
+	#tag EndMethod
+
+	#tag Method, Flags = &h21
+		Private Function QueryComplexSelector(theSelector As String) As HTMLNode()
+		  Var results() As HTMLNode
+		  
+		  // Extract tag name (everything before first [).
+		  Var tagName As String = ""
+		  Var firstBracket As Integer = theSelector.IndexOf("[")
+		  
+		  If firstBracket > 0 Then
+		    tagName = theSelector.Left(firstBracket).Trim
+		  ElseIf firstBracket = -1 Then
+		    // No brackets at all.
+		    Return QuerySelectorAll(theSelector)
+		  End If
+		  
+		  // Extract all conditions.
+		  Var conditions() As String = ExtractBracketedConditions(theSelector)
+		  
+		  If conditions.Count = 0 And tagName <> "" Then
+		    // Just a tag name, no attributes.
+		    FindByTagName(tagName, results)
+		    Return results
+		  End If
+		  
+		  // Find nodes matching all conditions.
+		  FindComplexMatch(tagName, conditions, results)
+		  
+		  Return results
+		End Function
+	#tag EndMethod
+
+	#tag Method, Flags = &h21, Description = 48616E646C65732064657363656E64616E742073656C6563746F72732028652E672E2C2022646976207022202D20616C6C207020656C656D656E747320696E7369646520646976292E
+		Private Function QueryDescendantSelector(theSelector As String) As HTMLNode()
+		  /// Handles descendant selectors (e.g., "div p" - all p elements inside div).
+		  
+		  Var results() As HTMLNode
+		  Var parts() As String = theSelector.Split(" ")
+		  
+		  // Clean up parts (remove empty strings from multiple spaces).
+		  Var cleanParts() As String
+		  For Each part As String In parts
+		    part = part.Trim
+		    If part <> "" Then
+		      cleanParts.Add(part)
+		    End If
+		  Next part
+		  
+		  If cleanParts.Count < 2 Then
+		    // Not a valid descendant selector.
+		    Return QuerySelectorAll(theSelector)
+		  End If
+		  
+		  // Start with the first selector.
+		  Var currentMatches() As HTMLNode = QuerySelectorAll(cleanParts(0))
+		  
+		  // For each subsequent selector, find descendants.
+		  For i As Integer = 1 To cleanParts.LastIndex
+		    Var nextMatches() As HTMLNode
+		    
+		    For Each parent As HTMLNode In currentMatches
+		      Var descendants() As HTMLNode = parent.QuerySelectorAll(cleanParts(i))
+		      For Each descendant As HTMLNode In descendants
+		        // Avoid duplicates.
+		        If nextMatches.IndexOf(descendant) = -1 Then
+		          nextMatches.Add(descendant)
+		        End If
+		      Next descendant
+		    Next parent
+		    
+		    currentMatches = nextMatches
+		  Next i
+		  
+		  Return currentMatches
+		  
+		End Function
+	#tag EndMethod
+
+	#tag Method, Flags = &h21, Description = 48616E646C65732067656E6572616C207369626C696E672073656C6563746F722028652E672E2C20226831207E207022202D20616C6C2070207369626C696E6773206166746572206831292E
+		Private Function QueryGeneralSiblingSelector(theSelector As String) As HTMLNode()
+		  /// Handles general sibling selector (e.g., "h1 ~ p" - all p siblings after h1).
+		  
+		  Var results() As HTMLNode
+		  Var parts() As String = theSelector.Split("~")
+		  
+		  If parts.Count <> 2 Then
+		    Return results
+		  End If
+		  
+		  Var firstSelector As String = parts(0).Trim
+		  Var secondSelector As String = parts(1).Trim
+		  
+		  // Find all elements matching the first selector.
+		  Var firstMatches() As HTMLNode = QuerySelectorAll(firstSelector)
+		  
+		  For Each node As HTMLNode In firstMatches
+		    // Get all following siblings.
+		    Var sibling As HTMLNode = node.GetNextSibling
+		    While sibling <> Nil
+		      If MatchesSelector(sibling, secondSelector) Then
+		        If results.IndexOf(sibling) = -1 Then
+		          results.Add(sibling)
+		        End If
+		      End If
+		      sibling = sibling.GetNextSibling()
+		    Wend
+		  Next node
+		  
+		  Return results
+		  
+		End Function
+	#tag EndMethod
+
+	#tag Method, Flags = &h21, Description = 48616E646C6573206D756C7469706C652073656C6563746F72732028652E672E2C20226469762C20702C207370616E22202D20616C6C207468726565207479706573292E
+		Private Function QueryMultipleSelectors(theSelector As String) As HTMLNode()
+		  /// Handles multiple selectors (e.g., "div, p, span" - all three types).
+		  
+		  Var results() As HTMLNode
+		  Var parts() As String = theSelector.Split(",")
+		  
+		  For Each part As String In parts
+		    part = part.Trim
+		    If part <> "" Then
+		      Var matches() As HTMLNode = QuerySelectorAll(part)
+		      For Each match As HTMLNode In matches
+		        // Avoid duplicates.
+		        If results.IndexOf(match) = -1 Then
+		          results.Add(match)
+		        End If
+		      Next match
+		    End If
+		  Next part
+		  
+		  Return results
+		  
+		End Function
+	#tag EndMethod
+
+	#tag Method, Flags = &h21
+		Private Function QueryPseudoSelector(theSelector As String) As HTMLNode()
+		  Var results() As HTMLNode
+		  Var colonPos As Integer = theSelector.IndexOf(":")
+		  
+		  If colonPos = -1 Then Return results
+		  
+		  Var baseSelector As String = theSelector.Left(colonPos).Trim
+		  Var pseudo As String = theSelector.Middle(colonPos + 1).Trim
+		  
+		  // Get base matches first.
+		  Var baseMatches() As HTMLNode
+		  If baseSelector = "" Then
+		    // Universal selector.
+		    FindAllElements(baseMatches)
+		  Else
+		    baseMatches = QuerySelectorAll(baseSelector)
+		  End If
+		  
+		  // Apply pseudo-selector filter.
+		  Select Case pseudo.Lowercase
+		  Case "first-child"
+		    For Each node As HTMLNode In baseMatches
+		      Var parent As HTMLNode = node.Parent()
+		      If parent <> Nil And parent.GetFirstChild = node Then
+		        results.Add(node)
+		      End If
+		    Next node
+		    
+		  Case "last-child"
+		    For Each node As HTMLNode In baseMatches
+		      Var parent As HTMLNode = node.Parent
+		      If parent <> Nil And parent.GetLastChild = node Then
+		        results.Add(node)
+		      End If
+		    Next node
+		    
+		  Case "empty"
+		    For Each node As HTMLNode In baseMatches
+		      If node.Children.Count = 0 And node.GetInnerText.Trim = "" Then
+		        results.Add(node)
+		      End If
+		    Next node
+		    
+		  Case "not-empty"
+		    For Each node As HTMLNode In baseMatches
+		      If node.Children.Count > 0 Or node.GetInnerText.Trim <> "" Then
+		        results.Add(node)
+		      End If
+		    Next node
+		  End Select
+		  
+		  // Handle :nth-child(n)
+		  If pseudo.Left(10) = "nth-child(" And pseudo.Right(1) = ")" Then
+		    Var nthValue As String = pseudo.Middle(10, pseudo.Length - 11)
+		    Var n As Integer = nthValue.ToInteger
+		    
+		    If n > 0 Then
+		      For Each node As HTMLNode In baseMatches
+		        Var parent As HTMLNode = node.Parent
+		        If parent <> Nil Then
+		          Var index As Integer = parent.Children.IndexOf(node)
+		          If index = n - 1 Then // nth-child is 1-based
+		            results.Add(node)
+		          End If
+		        End If
+		      Next node
+		    End If
+		  End If
+		  
+		  Return results
 		  
 		End Function
 	#tag EndMethod
@@ -464,12 +884,40 @@ Protected Class HTMLNode
 		  ///      Var nonTextInputs() As HTMLNode = doc.QuerySelectorAll("[type!=text]")
 		  
 		  #Pragma Warning "TODO: Test"
-		  #Pragma Warning "TODO: Add more complex selector support from Claude chat"
 		  
 		  Var results() As HTMLNode
-		  Var parts() As String = ParseSelector(theSelector)
+		  theSelector = theSelector.Trim
 		  
-		  // A simple implementation for basic selectors.
+		  // Check for pseudo-selectors first
+		  If theSelector.IndexOf(":") <> -1 Then
+		    Return QueryPseudoSelector(theSelector)
+		  End If
+		  
+		  // Handle combinators in order of precedence
+		  If theSelector.IndexOf(",") <> -1 Then
+		    // Multiple selectors
+		    Return QueryMultipleSelectors(theSelector)
+		  ElseIf theSelector.IndexOf(" > ") <> -1 Or theSelector.IndexOf(">") <> -1 Then
+		    // Child selector
+		    Return QueryChildSelector(theSelector)
+		  ElseIf theSelector.IndexOf(" + ") <> -1 Or theSelector.IndexOf("+") <> -1 Then
+		    // Adjacent sibling
+		    Return QueryAdjacentSiblingSelector(theSelector)
+		  ElseIf theSelector.IndexOf(" ~ ") <> -1 Or theSelector.IndexOf("~") <> -1 Then
+		    // General sibling
+		    Return QueryGeneralSiblingSelector(theSelector)
+		  ElseIf theSelector.IndexOf(" ") <> -1 Then
+		    // Descendant selector (space)
+		    Return QueryDescendantSelector(theSelector)
+		  End If
+		  
+		  // Handle multiple attributes like input[type=text][required]
+		  If theSelector.IndexOf("[") <> -1 And theSelector.CountFields("[") > 2 Then
+		    Return QueryComplexSelector(theSelector)
+		  End If
+		  
+		  // Simple selector
+		  Var parts() As String = ParseSelector(theSelector)
 		  If parts.Count = 0 Then Return results
 		  
 		  Var selectorType As String = parts(0)
@@ -477,19 +925,12 @@ Protected Class HTMLNode
 		  
 		  Select Case selectorType
 		  Case "tag"
-		    // Tag selector (e.g., "div").
 		    FindByTagName(selectorValue, results)
-		    
 		  Case "class"
-		    // Class selector (e.g., ".myclass").
 		    FindByClassName(selectorValue, results)
-		    
 		  Case "id"
-		    // ID selector (e.g., "#myid").
 		    FindByID(selectorValue, results)
-		    
 		  Case "attribute"
-		    // Attribute selector (e.g., "[href]" or "[type=text]").
 		    FindByAttribute(selectorValue, results)
 		  End Select
 		  
