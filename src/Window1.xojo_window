@@ -52,9 +52,153 @@ Begin DesktopWindow Window1
       Top             =   52
       Transparent     =   False
       Underline       =   False
-      Value           =   0
+      Value           =   1
       Visible         =   True
       Width           =   1044
+      Begin DesktopTextArea ValidationReport
+         AllowAutoDeactivate=   True
+         AllowFocusRing  =   True
+         AllowSpellChecking=   True
+         AllowStyledText =   True
+         AllowTabs       =   False
+         BackgroundColor =   &cFFFFFF
+         Bold            =   False
+         Enabled         =   True
+         FontName        =   "System"
+         FontSize        =   0.0
+         FontUnit        =   0
+         Format          =   ""
+         HasBorder       =   True
+         HasHorizontalScrollbar=   False
+         HasVerticalScrollbar=   True
+         Height          =   636
+         HideSelection   =   True
+         Index           =   -2147483648
+         InitialParent   =   "TabPanel1"
+         Italic          =   False
+         Left            =   40
+         LineHeight      =   0.0
+         LineSpacing     =   1.0
+         LockBottom      =   True
+         LockedInPosition=   False
+         LockLeft        =   True
+         LockRight       =   True
+         LockTop         =   True
+         MaximumCharactersAllowed=   0
+         Multiline       =   True
+         ReadOnly        =   False
+         Scope           =   0
+         TabIndex        =   0
+         TabPanelIndex   =   3
+         TabStop         =   True
+         Text            =   ""
+         TextAlignment   =   0
+         TextColor       =   &c000000
+         Tooltip         =   ""
+         Top             =   90
+         Transparent     =   False
+         Underline       =   False
+         UnicodeMode     =   1
+         ValidationMask  =   ""
+         Visible         =   True
+         Width           =   1004
+      End
+      Begin DesktopTextArea HTMLField
+         AllowAutoDeactivate=   True
+         AllowFocusRing  =   True
+         AllowSpellChecking=   True
+         AllowStyledText =   True
+         AllowTabs       =   False
+         BackgroundColor =   &cFFFFFF
+         Bold            =   False
+         Enabled         =   True
+         FontName        =   "System"
+         FontSize        =   0.0
+         FontUnit        =   0
+         Format          =   ""
+         HasBorder       =   True
+         HasHorizontalScrollbar=   False
+         HasVerticalScrollbar=   True
+         Height          =   636
+         HideSelection   =   True
+         Index           =   -2147483648
+         InitialParent   =   "TabPanel1"
+         Italic          =   False
+         Left            =   40
+         LineHeight      =   0.0
+         LineSpacing     =   1.0
+         LockBottom      =   True
+         LockedInPosition=   False
+         LockLeft        =   True
+         LockRight       =   True
+         LockTop         =   True
+         MaximumCharactersAllowed=   0
+         Multiline       =   True
+         ReadOnly        =   False
+         Scope           =   0
+         TabIndex        =   0
+         TabPanelIndex   =   1
+         TabStop         =   True
+         Text            =   ""
+         TextAlignment   =   0
+         TextColor       =   &c000000
+         Tooltip         =   ""
+         Top             =   90
+         Transparent     =   False
+         Underline       =   False
+         UnicodeMode     =   1
+         ValidationMask  =   ""
+         Visible         =   True
+         Width           =   1004
+      End
+      Begin NodeBrowser MyNodeBrowser
+         AllowAutoDeactivate=   True
+         AllowAutoHideScrollbars=   True
+         AllowExpandableRows=   True
+         AllowFocusRing  =   False
+         AllowResizableColumns=   False
+         AllowRowDragging=   False
+         AllowRowReordering=   False
+         Bold            =   False
+         ColumnCount     =   1
+         ColumnWidths    =   ""
+         DefaultRowHeight=   -1
+         DropIndicatorVisible=   False
+         Enabled         =   True
+         FontName        =   "System"
+         FontSize        =   0.0
+         FontUnit        =   0
+         GridLineStyle   =   0
+         HasBorder       =   True
+         HasHeader       =   False
+         HasHorizontalScrollbar=   False
+         HasVerticalScrollbar=   True
+         HeadingIndex    =   -1
+         Height          =   636
+         Index           =   -2147483648
+         InitialParent   =   "TabPanel1"
+         InitialValue    =   ""
+         Italic          =   False
+         Left            =   40
+         LockBottom      =   True
+         LockedInPosition=   False
+         LockLeft        =   True
+         LockRight       =   True
+         LockTop         =   True
+         RequiresSelection=   False
+         RowSelectionType=   0
+         Scope           =   0
+         TabIndex        =   0
+         TabPanelIndex   =   2
+         TabStop         =   True
+         Tooltip         =   ""
+         Top             =   90
+         Transparent     =   False
+         Underline       =   False
+         Visible         =   True
+         Width           =   1004
+         _ScrollWidth    =   -1
+      End
    End
    Begin DesktopTextField URL
       AllowAutoDeactivate=   True
@@ -166,11 +310,15 @@ End
 #tag WindowCode
 	#tag Event
 		Sub Opening()
+		  MyNodeBrowser.RemoveAllRows
+		  
 		  // Non-strict mode.
 		  Parser = New HTMLParser(False)
 		  Var html As String = TEST_GARRYPETTET_HTML
 		  
-		  Parser.TrackWarningsAndInfo = False
+		  HTMLField.Text = html
+		  
+		  Parser.TrackWarningsAndInfo = True
 		  
 		  Var watch As New StopWatch(True)
 		  Var doc As HTMLNode = Parser.Parse(html)
@@ -180,15 +328,11 @@ End
 		  
 		  report = "Took " + watch.ElapsedMilliseconds.ToString + " ms to parse." + EndOfLine + EndOfLine + report
 		  
-		  ' // Traverse the tree.
-		  ' Var s() As String
-		  ' TraverseNodes(doc, s)
-		  ' 
-		  ' If parser.HasErrors Then
-		  ' Output.Text = report
-		  ' Else
-		  ' Output.Text = String.FromArray(s, EndOfLine)
-		  ' End If
+		  ValidationReport.Text = report
+		  
+		  If doc <> Nil Then
+		    MyNodeBrowser.AddRoot(doc)
+		  End If
 		  
 		End Sub
 	#tag EndEvent

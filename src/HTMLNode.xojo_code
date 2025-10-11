@@ -1089,7 +1089,7 @@ Protected Class HTMLNode
 		    result = spaces + "<!DOCTYPE " + Content + ">" + EndOfLine
 		    
 		  Case HTMLNode.Types.Text
-		    result = spaces + "[TEXT: " + Content.ReplaceAll(EndOfLine, " ") + "]" + EndOfLine
+		    result = spaces + "" + Content.ReplaceAll(EndOfLine, " ") + EndOfLine
 		    
 		  Case HTMLNode.Types.Element
 		    // <elementName
@@ -1131,6 +1131,15 @@ Protected Class HTMLNode
 	#tag Property, Flags = &h0, Description = 54686973206E6F64652773207465787420636F6E74656E742E20446F206E6F74206D6F64696679206469726563746C79202D2075736520604164644368696C6428296020696620796F752764206C696B6520746F2061646420746F20746869732E
 		Content As String
 	#tag EndProperty
+
+	#tag ComputedProperty, Flags = &h0, Description = 547275652069662074686973206E6F64652068617320616E79206368696C6472656E2E
+		#tag Getter
+			Get
+			  Return Children.Count > 0
+			End Get
+		#tag EndGetter
+		HasChildren As Boolean
+	#tag EndComputedProperty
 
 	#tag ComputedProperty, Flags = &h0, Description = 547275652069662074686973206E6F6465206973206120626C6F636B20656C656D656E742028652E672E203C6469763E2C203C703E292E20436F6D707574656420285472756520696620697473206E616D65206170706561727320696E206048544D4C5061727365722E426C6F636B5461677360292E
 		#tag Getter
