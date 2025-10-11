@@ -5,6 +5,10 @@ Protected Class HTMLNode
 		  /// Adds a child node so long as it is not Nil.
 		  /// Does nothing if child is Nil.
 		  
+		  #Pragma StackOverflowChecking False
+		  #Pragma DisableBoundsChecking
+		  #Pragma NilObjectChecking False
+		  
 		  If child = Nil Then Return
 		  
 		  child.Parent = Self
@@ -18,9 +22,15 @@ Protected Class HTMLNode
 		Function Ancestor(tagName As String) As HTMLNode
 		  /// Finds and returns the first ancestor with given the tag name or Nil if none found.
 		  
+		  #Pragma StackOverflowChecking False
+		  #Pragma DisableBoundsChecking
+		  #Pragma NilObjectChecking False
+		  
+		  Var tagNameLowerCase As String = tagName.Lowercase
+		  
 		  Var current As HTMLNode = Parent
 		  While current <> Nil
-		    If current.Type = HTMLNode.Types.Element And current.TagName.Lowercase = tagName.Lowercase Then
+		    If current.Type = HTMLNode.Types.Element And current.TagName.Lowercase = tagNameLowerCase Then
 		      Return current
 		    End If
 		    current = current.Parent
@@ -77,6 +87,10 @@ Protected Class HTMLNode
 		  /// Takes a CSS‑style selector string (e.g. div[class="foo"][data-id=5]) and extracts the text (condition) that appears 
 		  /// inside each pair of square brackets. These conditions are returned as an array.
 		  
+		  #Pragma StackOverflowChecking False
+		  #Pragma DisableBoundsChecking
+		  #Pragma NilObjectChecking False
+		  
 		  Var conditions() As String
 		  Var chars() As String = theSelector.Characters
 		  
@@ -87,12 +101,14 @@ Protected Class HTMLNode
 		    If char = "[" Then
 		      inBracket = True
 		      currentCondition = ""
+		      
 		    ElseIf char = "]" Then
 		      If inBracket And currentCondition <> "" Then
 		        conditions.Add(currentCondition)
 		      End If
 		      inBracket = False
 		      currentCondition = ""
+		      
 		    ElseIf inBracket Then
 		      currentCondition = currentCondition + char
 		    End If
@@ -107,6 +123,10 @@ Protected Class HTMLNode
 		Private Sub FindAllElements(results() As HTMLNode)
 		  /// Helper to find all elements (for universal selector).
 		  
+		  #Pragma StackOverflowChecking False
+		  #Pragma DisableBoundsChecking
+		  #Pragma NilObjectChecking False
+		  
 		  If Type = Types.Element Then results.Add(Self)
 		  
 		  For Each child As HTMLNode In Children
@@ -119,7 +139,10 @@ Protected Class HTMLNode
 	#tag Method, Flags = &h21
 		Private Sub FindByAttribute(attrSpec As String, results() As HTMLNode)
 		  /// Finds all nodes with the specified attribute and adds them to the passed ByRef `results()` array.
-		  /// 
+		  
+		  #Pragma StackOverflowChecking False
+		  #Pragma DisableBoundsChecking
+		  #Pragma NilObjectChecking False
 		  
 		  // Only elements can have attributes.
 		  If Self.Type <> Types.Element Then
@@ -239,6 +262,10 @@ Protected Class HTMLNode
 		Private Sub FindByClassName(className As String, ByRef results() As HTMLNode)
 		  /// Finds all nodes whose class name is `className` and adds them to the passed ByRef `results()` array.
 		  
+		  #Pragma StackOverflowChecking False
+		  #Pragma DisableBoundsChecking
+		  #Pragma NilObjectChecking False
+		  
 		  If Self.Type = Types.Element Then
 		    Var classAttr As String = AttributeValue("class")
 		    Var classes() As String = classAttr.Split(" ")
@@ -258,6 +285,10 @@ Protected Class HTMLNode
 		Private Sub FindByID(id As String, results() As HTMLNode)
 		  /// Finds all nodes whose id matches the passed `id` and adds them to the passed ByRef `results()` array.
 		  
+		  #Pragma StackOverflowChecking False
+		  #Pragma DisableBoundsChecking
+		  #Pragma NilObjectChecking False
+		  
 		  If Self.Type = Types.Element And AttributeValue("id") = id Then
 		    results.Add(Self)
 		  End If
@@ -272,6 +303,10 @@ Protected Class HTMLNode
 	#tag Method, Flags = &h21, Description = 46696E647320616C6C206E6F6465732077686F7365206E616D6520697320607461674E616D656020616E642061646473207468656D20746F20746865207061737365642042795265662060726573756C74732829602061727261792E
 		Private Sub FindByTagName(tagName As String, ByRef results() As HTMLNode)
 		  /// Finds all nodes whose name is `tagName` and adds them to the passed ByRef `results()` array.
+		  
+		  #Pragma StackOverflowChecking False
+		  #Pragma DisableBoundsChecking
+		  #Pragma NilObjectChecking False
 		  
 		  If Type = Types.Element And Self.TagName.Lowercase = tagName.Lowercase Then
 		    results.Add(Self)
@@ -289,6 +324,10 @@ Protected Class HTMLNode
 		  /// Traverses this node, looking for element nodes that satisfy:
 		  /// an optional tag name and a list of attribute‑based selector conditions
 		  /// Every node that matches all criteria is appended to the ByRef results array.
+		  
+		  #Pragma StackOverflowChecking False
+		  #Pragma DisableBoundsChecking
+		  #Pragma NilObjectChecking False
 		  
 		  If Type = Types.Element Then
 		    Var matched As Boolean = True
@@ -325,6 +364,10 @@ Protected Class HTMLNode
 		Function FirstChild() As HTMLNode
 		  /// Returns the first child of this node or Nil if there are no children.
 		  
+		  #Pragma StackOverflowChecking False
+		  #Pragma DisableBoundsChecking
+		  #Pragma NilObjectChecking False
+		  
 		  If Children.Count > 0 Then Return Children(0)
 		  
 		  Return Nil
@@ -339,6 +382,10 @@ Protected Class HTMLNode
 		  /// an array for all matches.
 		  /// May return Nil.
 		  
+		  #Pragma StackOverflowChecking False
+		  #Pragma DisableBoundsChecking
+		  #Pragma NilObjectChecking False
+		  
 		  Var results() As HTMLNode = NodesWithSelector(theSelector)
 		  
 		  If results.Count > 0 Then Return results(0)
@@ -352,6 +399,10 @@ Protected Class HTMLNode
 		  /// Returns the concatenated raw text that lies inside this node, ignoring any markup.
 		  /// Use when you need the plain textual payload of a subtree without any whitespace normalisation 
 		  /// or block‑element spacing logic (for that see `GetNormalisedText()`).
+		  
+		  #Pragma StackOverflowChecking False
+		  #Pragma DisableBoundsChecking
+		  #Pragma NilObjectChecking False
 		  
 		  Var result As String
 		  
@@ -377,6 +428,10 @@ Protected Class HTMLNode
 		  /// Determines if the passed character is whitespace.
 		  /// If `char.Length` <> 1 then we return False.
 		  
+		  #Pragma StackOverflowChecking False
+		  #Pragma DisableBoundsChecking
+		  #Pragma NilObjectChecking False
+		  
 		  // Return False for anything that isn’t a single character.
 		  If char.Length <> 1 Then Return False
 		  
@@ -391,6 +446,10 @@ Protected Class HTMLNode
 	#tag Method, Flags = &h0, Description = 52657475726E7320746865206C617374202866696E616C29206368696C64206F662074686973206E6F6465206F72204E696C20696620746865726520617265206E6F206368696C6472656E2E
 		Function LastChild() As HTMLNode
 		  /// Returns the last (final) child of this node or Nil if there are no children.
+		  
+		  #Pragma StackOverflowChecking False
+		  #Pragma DisableBoundsChecking
+		  #Pragma NilObjectChecking False
 		  
 		  If Children.Count > 0 Then Return Children(Children.LastIndex)
 		  
@@ -463,6 +522,10 @@ Protected Class HTMLNode
 	#tag Method, Flags = &h0, Description = 52657475726E7320746865206E657874207369626C696E67206E6F6465206F72204E696C206966207468657265206973206E6F6E652E
 		Function NextSibling() As HTMLNode
 		  /// Returns the next sibling node or Nil if there is none.
+		  
+		  #Pragma StackOverflowChecking False
+		  #Pragma DisableBoundsChecking
+		  #Pragma NilObjectChecking False
 		  
 		  If Parent = Nil Then Return Nil
 		  
@@ -571,6 +634,10 @@ Protected Class HTMLNode
 		Function NormalisedText() As String
 		  /// Returns text with proper whitespace handling.
 		  
+		  #Pragma StackOverflowChecking False
+		  #Pragma DisableBoundsChecking
+		  #Pragma NilObjectChecking False
+		  
 		  If Self.Type = HTMLNode.Types.Text Then
 		    // Check if the parent is a <pre> tag.
 		    If Self.Parent <> Nil And Self.Parent.TagName = "pre" Then
@@ -581,7 +648,7 @@ Protected Class HTMLNode
 		    End If
 		    
 		  ElseIf Self.Type = HTMLNode.Types.Element Then
-		    Var result As String
+		    Var result() As String
 		    Var needsSpace As Boolean = False
 		    
 		    For Each child As HTMLNode In Children
@@ -589,14 +656,14 @@ Protected Class HTMLNode
 		      
 		      If childText <> "" Then
 		        If needsSpace And Not IsWhitespace(childText.Left(1)) Then
-		          result = result + " "
+		          result.Add(" ")
 		        End If
-		        result = result + childText
+		        result.Add(childText)
 		        needsSpace = child.IsBlockElement
 		      End If
 		    Next child
 		    
-		    Return result.Trim
+		    Return String.FromArray(result, "").Trim
 		  End If
 		  
 		  Return ""
@@ -608,10 +675,14 @@ Protected Class HTMLNode
 		Function NormaliseWhitespace(s As String) As String
 		  /// Replaces all whitespace sequences with a single space.
 		  
+		  #Pragma StackOverflowChecking False
+		  #Pragma DisableBoundsChecking
+		  #Pragma NilObjectChecking False
+		  
 		  Var result As String = s
 		  
 		  // Replace tabs and newlines with spaces.
-		  result = result.ReplaceAll(Chr(9), " ")
+		  result = result.ReplaceAll(TAB, " ")
 		  result = result.ReplaceAll(EndOfLine.UNIX, " ")
 		  
 		  // Collapse multiple spaces.
@@ -629,6 +700,10 @@ Protected Class HTMLNode
 		  /// Returns the type of selector this is as a string (e.g. "#content" is of type "id", ".badge" is of type "class").
 		  /// Supported selector types: "id", "class", "attribute" (e.g. [name]) or just generic "tag".
 		  
+		  #Pragma StackOverflowChecking False
+		  #Pragma DisableBoundsChecking
+		  #Pragma NilObjectChecking False
+		  
 		  Var result() As String
 		  
 		  theSelector = theSelector.Trim
@@ -637,12 +712,15 @@ Protected Class HTMLNode
 		  If theSelector.Left(1) = "#" Then
 		    result.Add("id")
 		    result.Add(theSelector.Middle(1))
+		    
 		  ElseIf theSelector.Left(1) = "." Then
 		    result.Add("class")
 		    result.Add(theSelector.Middle(1))
+		    
 		  ElseIf theSelector.Left(1) = "[" And theSelector.Right(1) = "]" Then
 		    result.Add("attribute")
 		    result.Add(theSelector.Middle(1, theSelector.Length - 2))
+		    
 		  Else
 		    result.Add("tag")
 		    result.Add(theSelector.Lowercase)
@@ -656,6 +734,10 @@ Protected Class HTMLNode
 	#tag Method, Flags = &h0, Description = 52657475726E73207468652070726576696F7573207369626C696E67206F72204E696C20696620746865726520617265206E6F207369626C696E6773206F72207468697320697320746865206669727374206368696C642E
 		Function PreviousSibling() As HTMLNode
 		  /// Returns the previous sibling or Nil if there are no siblings or this is the first child.
+		  
+		  #Pragma StackOverflowChecking False
+		  #Pragma DisableBoundsChecking
+		  #Pragma NilObjectChecking False
 		  
 		  If parent = Nil Then Return Nil
 		  
@@ -961,6 +1043,10 @@ Protected Class HTMLNode
 		Private Function StripQuotes(value As String) As String
 		  /// Helper to remove quotes from attribute values.
 		  
+		  #Pragma StackOverflowChecking False
+		  #Pragma DisableBoundsChecking
+		  #Pragma NilObjectChecking False
+		  
 		  value = value.Trim
 		  
 		  If value.Length >= 2 Then
@@ -979,6 +1065,10 @@ Protected Class HTMLNode
 	#tag Method, Flags = &h0, Description = 52657475726E73206120737472696E6720726570726573656E746174696F6E206F662074686973206E6F64652C20746F207468652073706563696669656420696E64656E746174696F6E206C6576656C2E
 		Function ToString(indent As Integer = 0) As String
 		  /// Returns a string representation of this node, to the specified indentation level.
+		  
+		  #Pragma StackOverflowChecking False
+		  #Pragma DisableBoundsChecking
+		  #Pragma NilObjectChecking False
 		  
 		  // Build the indent string.
 		  Var spaces As String = ""
@@ -1111,6 +1201,10 @@ Protected Class HTMLNode
 	#tag EndProperty
 
 
+	#tag Constant, Name = TAB, Type = String, Dynamic = False, Default = \"\t", Scope = Protected, Description = 54686520686F72697A6F6E74616C2074616220636861726163746572202826753039292E
+	#tag EndConstant
+
+
 	#tag Enum, Name = Types, Type = Integer, Flags = &h0
 		CDATA
 		  Comment
@@ -1182,7 +1276,7 @@ Protected Class HTMLNode
 			Group="Behavior"
 			InitialValue=""
 			Type="String"
-			EditorType=""
+			EditorType="MultiLineEditor"
 		#tag EndViewProperty
 		#tag ViewProperty
 			Name="IsBlockElement"
@@ -1222,7 +1316,7 @@ Protected Class HTMLNode
 			Group="Behavior"
 			InitialValue=""
 			Type="String"
-			EditorType=""
+			EditorType="MultiLineEditor"
 		#tag EndViewProperty
 	#tag EndViewBehavior
 End Class

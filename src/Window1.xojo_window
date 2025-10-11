@@ -103,6 +103,9 @@ End
 		  ' End If
 		  
 		  // 2813 ms before
+		  // 2812 ms with pragmas
+		  // 2805 with TAB constant
+		  
 		End Sub
 	#tag EndEvent
 
@@ -110,6 +113,9 @@ End
 	#tag Method, Flags = &h21, Description = 47656E65726174657320616E642072657475726E7320616E2048544D4C2076616C69646174696F6E207265706F72742E
 		Private Function GenerateValidationReport(errors() As HTMLParserException) As String
 		  /// Generates and returns a Markdown validation report.
+		  
+		  #Pragma DisableBoundsChecking
+		  #Pragma StackOverflowChecking False
 		  
 		  Var md() As String
 		  

@@ -5,6 +5,10 @@ Protected Class HTMLParser
 		  /// Adds a parsing error.
 		  /// In strict mode, we raise the exception in addition to logging it.
 		  
+		  #Pragma StackOverflowChecking False
+		  #Pragma DisableBoundsChecking
+		  #Pragma NilObjectChecking False
+		  
 		  Var e As New HTMLParserException(errorType, mLineNumber, mColumnNumber, message, severity)
 		  
 		  // Add a context snippet.
@@ -26,6 +30,10 @@ Protected Class HTMLParser
 		Private Sub Advance()
 		  /// Advances the position 1 place and updates line numbers and column positions.
 		  
+		  #Pragma StackOverflowChecking False
+		  #Pragma DisableBoundsChecking
+		  #Pragma NilObjectChecking False
+		  
 		  If mPosition <= mCharsLastIndex Then
 		    If mChars(mPosition) = EndOfLine.UNIX Then
 		      mLineNumber = mLineNumber + 1
@@ -43,6 +51,10 @@ Protected Class HTMLParser
 	#tag Method, Flags = &h21, Description = 416476616E6365732074686520706F736974696F6E2074686520737065636966696564206E756D626572206F6620706C6163657320616E642075706461746573206C696E65206E756D6265727320616E6420636F6C756D6E20706F736974696F6E732E
 		Private Sub AdvancePosition(places As Integer)
 		  /// Advances the position the specified number of places and updates line numbers and column positions.
+		  
+		  #Pragma StackOverflowChecking False
+		  #Pragma DisableBoundsChecking
+		  #Pragma NilObjectChecking False
 		  
 		  For i As Integer = 1 To places
 		    If mPosition <= mCharsLastIndex Then
@@ -74,6 +86,10 @@ Protected Class HTMLParser
 	#tag Method, Flags = &h21, Description = 436865636B20666F7220726571756972656420617474726962757465732E
 		Private Sub CheckRequiredAttributes(node As HTMLNode)
 		  /// Check for required attributes.
+		  
+		  #Pragma StackOverflowChecking False
+		  #Pragma DisableBoundsChecking
+		  #Pragma NilObjectChecking False
 		  
 		  Select Case node.TagName
 		  Case "img"
@@ -112,6 +128,10 @@ Protected Class HTMLParser
 		Private Sub CloseTag(tagName As String)
 		  /// Closes the tag with the passed name.
 		  
+		  #Pragma StackOverflowChecking False
+		  #Pragma DisableBoundsChecking
+		  #Pragma NilObjectChecking False
+		  
 		  // Find the matching open tag.
 		  Var foundIndex As Integer = -1
 		  For i As Integer = mOpenTags.LastIndex DownTo 0
@@ -149,6 +169,10 @@ Protected Class HTMLParser
 		Private Function DecodeHTMLEntities(s As String) As String
 		  /// Decodes HTML entities within `s` to their actual values and returns a new string with the entities decoded.
 		  
+		  #Pragma StackOverflowChecking False
+		  #Pragma DisableBoundsChecking
+		  #Pragma NilObjectChecking False
+		  
 		  Var result As String = s
 		  
 		  // First, handle numeric entities (&#123; and &#xABC;)
@@ -185,21 +209,28 @@ Protected Class HTMLParser
 		  /// Decodes HTML numeric entities (characters referred to by their Unicode value). 
 		  /// E.g: &#160;
 		  
+		  #Pragma StackOverflowChecking False
+		  #Pragma DisableBoundsChecking
+		  #Pragma NilObjectChecking False
+		  
+		  // Forward declare variables so we don't do it on every iteration of the loop.
 		  Var result As String = s
 		  Var pos As Integer = 0
+		  Var ampPos, semiPos, charCode As Integer
+		  Var entity As String
 		  
 		  While pos < result.Length
-		    Var ampPos As Integer = result.IndexOf(pos, "&#")
+		    ampPos = result.IndexOf(pos, "&#")
 		    If ampPos = -1 Then Exit
 		    
-		    Var semiPos As Integer = result.IndexOf(ampPos, ";")
+		    semiPos = result.IndexOf(ampPos, ";")
 		    If semiPos = -1 Or semiPos > ampPos + 8 Then
 		      pos = ampPos + 1
 		      Continue
 		    End If
 		    
-		    Var entity As String = result.Middle(ampPos + 2, semiPos - ampPos - 2)
-		    Var charCode As Integer = 0
+		    entity = result.Middle(ampPos + 2, semiPos - ampPos - 2)
+		    charCode = 0
 		    
 		    If entity.Left(1) = "x" Or entity.Left(1) = "X" Then
 		      // Hexadecimal entity.
@@ -244,7 +275,13 @@ Protected Class HTMLParser
 		Function HasErrors() As Boolean
 		  /// Returns True if any errors occurred during parsing.
 		  
+		  #Pragma StackOverflowChecking False
+		  #Pragma DisableBoundsChecking
+		  #Pragma NilObjectChecking False
+		  
 		  For Each e As HTMLParserException In mErrors
+		    If e = Nil Then Continue
+		    
 		    If e.Severity = HTMLParserException.Severities.Error Then
 		      Return True
 		    End If
@@ -259,7 +296,13 @@ Protected Class HTMLParser
 		Function HasWarnings() As Boolean
 		  /// Returns True if any warnings occurred during parsing.
 		  
+		  #Pragma StackOverflowChecking False
+		  #Pragma DisableBoundsChecking
+		  #Pragma NilObjectChecking False
+		  
 		  For Each e As HTMLParserException In mErrors
+		    If e = Nil Then Continue
+		    
 		    If e.Severity = HTMLParserException.Severities.Warning Then
 		      Return True
 		    End If
@@ -385,8 +428,11 @@ Protected Class HTMLParser
 		Private Function IsValidNesting(tagName As String) As Boolean
 		  /// Returns True if the current node is nested in a valid manner.
 		  
-		  // Check common invalid nesting patterns.
+		  #Pragma StackOverflowChecking False
+		  #Pragma DisableBoundsChecking
+		  #Pragma NilObjectChecking False
 		  
+		  // Check common invalid nesting patterns.
 		  Static pInvalid() As String = Array("div", "p", "h1", "h2", "h3", _
 		  "h4", "h5", "h6", "ul", "ol", "table", "blockquote", "form")
 		  
@@ -427,6 +473,10 @@ Protected Class HTMLParser
 	#tag Method, Flags = &h0, Description = 5061727365732048544D4C20696E746F20612074726565206F662048544D4C206E6F6465732E
 		Function Parse(html As String) As HTMLNode
 		  /// Parses HTML into a tree of HTML nodes.
+		  
+		  #Pragma StackOverflowChecking False
+		  #Pragma DisableBoundsChecking
+		  #Pragma NilObjectChecking False
 		  
 		  // Standardise the HTML to have UNIX line endings.
 		  mHTML = html.ReplaceLineEndings(EndOfLine.UNIX)
@@ -518,12 +568,16 @@ Protected Class HTMLParser
 		Private Function ParseAttributeName() As String
 		  /// Parses and returns an attribute's name.
 		  
+		  #Pragma StackOverflowChecking False
+		  #Pragma DisableBoundsChecking
+		  #Pragma NilObjectChecking False
+		  
 		  Var startPos As Integer = mPosition
 		  
 		  While mPosition < mCharsCount
 		    Var c As String = PeekChar
 		    Select Case c
-		    Case "=", " ", "/", ">", "<", Chr(9), EndOfLine.UNIX
+		    Case "=", " ", "/", ">", "<", TAB, EndOfLine.UNIX
 		      Exit
 		    End Select
 		    Advance
@@ -537,6 +591,10 @@ Protected Class HTMLParser
 	#tag Method, Flags = &h21, Description = 50617273657320616E642072657475726E7320616E2061747472696275746527732076616C75652E
 		Private Function ParseAttributeValue() As String
 		  /// Parses and returns an attribute's value.
+		  
+		  #Pragma StackOverflowChecking False
+		  #Pragma DisableBoundsChecking
+		  #Pragma NilObjectChecking False
 		  
 		  Var quote As String = PeekChar
 		  
@@ -561,7 +619,7 @@ Protected Class HTMLParser
 		    
 		    While mPosition < mCharsCount
 		      Var c As String = PeekChar
-		      If c = " " Or c = ">" Or c = Chr(9) Or c = EndOfLine.UNIX Then
+		      If c = " " Or c = ">" Or c = TAB Or c = EndOfLine.UNIX Then
 		        Exit
 		      End If
 		      Advance
@@ -576,6 +634,10 @@ Protected Class HTMLParser
 	#tag Method, Flags = &h21, Description = 5061727365206174747269627574652076616C756520776974682071756F74652076616C69646174696F6E2E
 		Private Function ParseAttributeValueWithValidation() As String
 		  /// Parse attribute value with quote validation.
+		  
+		  #Pragma StackOverflowChecking False
+		  #Pragma DisableBoundsChecking
+		  #Pragma NilObjectChecking False
 		  
 		  Var quote As String = PeekChar
 		  Var startLine As Integer = mLineNumber
@@ -615,7 +677,7 @@ Protected Class HTMLParser
 		    Var startPos As Integer = mPosition
 		    While mPosition < mCharsCount
 		      Var c As String = PeekChar
-		      If c = " " Or c = ">" Or c = Chr(9) Or c = EndOfLine.UNIX Then
+		      If c = " " Or c = ">" Or c = TAB Or c = EndOfLine.UNIX Then
 		        Exit
 		      End If
 		      Advance
@@ -627,9 +689,16 @@ Protected Class HTMLParser
 		End Function
 	#tag EndMethod
 
-	#tag Method, Flags = &h21, Description = 2F2F2050617273652061747472696275746520776974682076616C69646174696F6E2E
+	#tag Method, Flags = &h21, Description = 50617273652061747472696275746520776974682076616C69646174696F6E2E
 		Private Sub ParseAttributeWithValidation(node As HTMLNode, attrName As String)
-		  /// // Parse attribute with validation.
+		  /// Parse attribute with validation.
+		  
+		  #Pragma StackOverflowChecking False
+		  #Pragma DisableBoundsChecking
+		  #Pragma NilObjectChecking False
+		  
+		  Static booleanAttrs() As String = Array("checked", "disabled", "readonly", _
+		  "required", "multiple", "selected", "defer", "async", "autofocus")
 		  
 		  SkipWhitespace
 		  
@@ -639,8 +708,6 @@ Protected Class HTMLParser
 		    node.AttributeValue(attrName.Lowercase) = ""
 		    
 		    // Validate boolean attributes.
-		    Static booleanAttrs() As String = Array("checked", "disabled", "readonly", _
-		    "required", "multiple", "selected", "defer", "async", "autofocus")
 		    If booleanAttrs.IndexOf(attrName.Lowercase) = -1 And mStrictMode Then
 		      AddError(HTMLParserException.Types.InvalidAttribute, _
 		      "Attribute '" + attrName + "' should have a value", HTMLParserException.Severities.Info)
@@ -666,6 +733,10 @@ Protected Class HTMLParser
 	#tag Method, Flags = &h21, Description = 50617273657320612043444154412073656374696F6E2E20417373756D65732077652068617665206A75737420736B69707065642074686520223C22
 		Private Sub ParseCDATA()
 		  /// Parses a CDATA section. Assumes we have just skipped the "<"
+		  
+		  #Pragma StackOverflowChecking False
+		  #Pragma DisableBoundsChecking
+		  #Pragma NilObjectChecking False
 		  
 		  // Skip "![CDATA[".
 		  AdvancePosition(8)
@@ -707,6 +778,10 @@ Protected Class HTMLParser
 	#tag Method, Flags = &h21, Description = 506172736573206120636C6F73696E67207461672E20417373756D6573207765277665207365656E206120222F222E
 		Private Sub ParseClosingTag()
 		  /// Parses a closing tag. Assumes we've seen a "/".
+		  
+		  #Pragma StackOverflowChecking False
+		  #Pragma DisableBoundsChecking
+		  #Pragma NilObjectChecking False
 		  
 		  Var tagName As String = ParseTagName.Lowercase
 		  
@@ -766,6 +841,10 @@ Protected Class HTMLParser
 		Private Sub ParseComment()
 		  /// Parses a comment.
 		  
+		  #Pragma StackOverflowChecking False
+		  #Pragma DisableBoundsChecking
+		  #Pragma NilObjectChecking False
+		  
 		  AdvancePosition(3) // Skip "!--"
 		  Var startPos As Integer = mPosition
 		  
@@ -791,8 +870,14 @@ Protected Class HTMLParser
 		End Sub
 	#tag EndMethod
 
-	#tag Method, Flags = &h21
+	#tag Method, Flags = &h21, Description = 506172736573206120446F6374797065206E6F64652E
 		Private Sub ParseDocType()
+		  /// Parses a Doctype node.
+		  
+		  #Pragma StackOverflowChecking False
+		  #Pragma DisableBoundsChecking
+		  #Pragma NilObjectChecking False
+		  
 		  AdvancePosition(8) // Skip "!DOCTYPE"
 		  SkipWhitespace
 		  
@@ -816,6 +901,10 @@ Protected Class HTMLParser
 	#tag Method, Flags = &h21, Description = 506172736573206D6978656420434441544120636F6E74656E742077697468696E20726177207465787420746167732028652E673A203C7363726970743E20616E64203C7374796C653E292E
 		Private Sub ParseMixedCDATAContent(parentNode As HTMLNode, content As String)
 		  /// Parses mixed CDATA content within raw text tags (e.g: <script> and <style>).
+		  
+		  #Pragma StackOverflowChecking False
+		  #Pragma DisableBoundsChecking
+		  #Pragma NilObjectChecking False
 		  
 		  Var pos As Integer = 0
 		  Var contentLength As Integer = content.Length
@@ -874,6 +963,13 @@ Protected Class HTMLParser
 		  /// Parses an opening tag.
 		  /// Assumes we have skipped past the "<".
 		  
+		  #Pragma StackOverflowChecking False
+		  #Pragma DisableBoundsChecking
+		  #Pragma NilObjectChecking False
+		  
+		  Static deprecatedTags() As String = Array("font", "center", "marquee", _
+		  "blink", "big", "strike", "tt", "frame", "frameset", "noframes")
+		  
 		  Var startLine As Integer = mLineNumber
 		  Var startColumn As Integer = mColumnNumber
 		  
@@ -888,8 +984,6 @@ Protected Class HTMLParser
 		  tagName = tagName.Lowercase
 		  
 		  // Check for deprecated tags.
-		  Static deprecatedTags() As String = Array("font", "center", "marquee", _
-		  "blink", "big", "strike", "tt", "frame", "frameset", "noframes")
 		  If deprecatedTags.IndexOf(tagName) <> -1 Then
 		    AddError(HTMLParserException.Types.DeprecatedTag, _
 		    "Tag <" + tagName + "> is deprecated in HTML5", HTMLParserException.Severities.Warning)
@@ -1001,16 +1095,16 @@ Protected Class HTMLParser
 		    node.IsSelfClosing = True
 		  End If
 		  
-		  ' If tagName = "script" Then
-		  ' Break
-		  ' End If
-		  
 		End Sub
 	#tag EndMethod
 
 	#tag Method, Flags = &h21, Description = 5061727365732074686520726177207465787420636F6E74656E74206F662061206E6F64652028652E673A2061203C7363726970743E206F72203C7374796C653E206E6F6465292E
 		Private Sub ParseRawTextContent(parentNode As HTMLNode, tagName As String)
 		  /// Parses the raw text content of a node (e.g: a <script> or <style> node).
+		  
+		  #Pragma StackOverflowChecking False
+		  #Pragma DisableBoundsChecking
+		  #Pragma NilObjectChecking False
 		  
 		  Var startPos As Integer = mPosition
 		  Var closingTag As String = "</" + tagName
@@ -1025,7 +1119,7 @@ Protected Class HTMLParser
 		      If nextPos >= mCharsCount Then Exit
 		      
 		      Var nextChar As String = mHTML.Middle(nextPos, 1)
-		      If nextChar = ">" Or nextChar = " " Or nextChar = Chr(9) Or nextChar = EndOfLine.UNIX Then
+		      If nextChar = ">" Or nextChar = " " Or nextChar = TAB Or nextChar = EndOfLine.UNIX Then
 		        // Found a valid closing tag.
 		        content = SubString(startPos, mPosition - startPos)
 		        
@@ -1069,6 +1163,10 @@ Protected Class HTMLParser
 		Private Sub ParseTag()
 		  /// Parses a tag.
 		  /// Assumes we have just seen a "<" character.
+		  
+		  #Pragma StackOverflowChecking False
+		  #Pragma DisableBoundsChecking
+		  #Pragma NilObjectChecking False
 		  
 		  // Skip the "<".
 		  Advance
@@ -1116,13 +1214,17 @@ Protected Class HTMLParser
 		Private Function ParseTagName() As String
 		  /// Parses and returns a tag name.
 		  
+		  #Pragma StackOverflowChecking False
+		  #Pragma DisableBoundsChecking
+		  #Pragma NilObjectChecking False
+		  
 		  SkipWhitespace
 		  
 		  Var startPos As Integer = mPosition
 		  
 		  While mPosition < mCharsCount
 		    Var c As String = PeekChar
-		    If c = " " Or c = "/" Or c = ">" Or c = Chr(9) Or c = EndOfLine.UNIX Then
+		    If c = " " Or c = "/" Or c = ">" Or c = TAB Or c = EndOfLine.UNIX Then
 		      Exit
 		    End If
 		    Advance
@@ -1136,6 +1238,10 @@ Protected Class HTMLParser
 	#tag Method, Flags = &h21, Description = 506172736573207465787420636F6E74656E742E
 		Private Sub ParseText()
 		  /// Parses text content.
+		  
+		  #Pragma StackOverflowChecking False
+		  #Pragma DisableBoundsChecking
+		  #Pragma NilObjectChecking False
 		  
 		  Var startPos As Integer = mPosition
 		  
@@ -1159,6 +1265,10 @@ Protected Class HTMLParser
 		  /// Returns the current character without advancing the position.
 		  /// Returns an empty string if we've reached the end of the HTML we're parsing.
 		  
+		  #Pragma StackOverflowChecking False
+		  #Pragma DisableBoundsChecking
+		  #Pragma NilObjectChecking False
+		  
 		  If mPosition <= mCharsLastIndex Then Return mChars(mPosition)
 		  
 		  Return ""
@@ -1169,6 +1279,10 @@ Protected Class HTMLParser
 	#tag Method, Flags = &h21
 		Private Function PeekString(length As Integer) As String
 		  /// Peeks at the specified number of characters without advancing the position.
+		  
+		  #Pragma StackOverflowChecking False
+		  #Pragma DisableBoundsChecking
+		  #Pragma NilObjectChecking False
 		  
 		  If mPosition + length <= mCharsCount Then Return SubString(mPosition, length)
 		  
@@ -1203,9 +1317,13 @@ Protected Class HTMLParser
 		Private Sub SkipWhitespace()
 		  /// Skips over whitespace characters.
 		  
+		  #Pragma StackOverflowChecking False
+		  #Pragma DisableBoundsChecking
+		  #Pragma NilObjectChecking False
+		  
 		  While mPosition <= mCharsLastIndex
 		    Var c As String = mChars(mPosition)
-		    If c <> " " And c <> Chr(9) And c <> EndOfLine.UNIX Then Exit
+		    If c <> " " And c <> TAB And c <> EndOfLine.UNIX Then Exit
 		    Advance
 		  Wend
 		  
@@ -1217,6 +1335,10 @@ Protected Class HTMLParser
 		  /// Returns a string from the mChars array beginning at `startPos` for `length` characters.
 		  /// Returns "" if bad parameters.
 		  /// Returns from `startPos` to the end of the array if `length` is too great.
+		  
+		  #Pragma StackOverflowChecking False
+		  #Pragma DisableBoundsChecking
+		  #Pragma NilObjectChecking False
 		  
 		  If mCharsCount = mLength Then
 		    // There are no funny characters in the `mChars` array so we can use Xojo's optimised `String.Middle()` method.
@@ -1246,6 +1368,10 @@ Protected Class HTMLParser
 	#tag Method, Flags = &h21, Description = 56616C6964617465207370656369666963206174747269627574652076616C7565732E
 		Private Sub ValidateAttributeValue(tagName As String, attrName As String, value As String)
 		  /// Validate specific attribute values.
+		  
+		  #Pragma StackOverflowChecking False
+		  #Pragma DisableBoundsChecking
+		  #Pragma NilObjectChecking False
 		  
 		  // Validate input types.
 		  If tagName = "input" And attrName = "type" Then
@@ -1392,6 +1518,10 @@ Protected Class HTMLParser
 	#tag Property, Flags = &h1, Description = 547275652069662074686520446F635479706520686173206265656E2070726F63657373656420696E207468697320646F63756D656E742E
 		Protected seenDocType As Boolean = False
 	#tag EndProperty
+
+
+	#tag Constant, Name = TAB, Type = String, Dynamic = False, Default = \"\t", Scope = Protected, Description = 54686520686F72697A6F6E74616C2074616220636861726163746572202826753039292E
+	#tag EndConstant
 
 
 	#tag ViewBehavior
