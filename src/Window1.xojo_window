@@ -21,15 +21,45 @@ Begin DesktopWindow Window1
    MinimumHeight   =   64
    MinimumWidth    =   64
    Resizeable      =   True
-   Title           =   "Untitled"
+   Title           =   "HTMLKit"
    Type            =   0
    Visible         =   True
    Width           =   1084
-   Begin DesktopTextArea Output
+   Begin DesktopTabPanel TabPanel1
+      AllowAutoDeactivate=   True
+      Bold            =   False
+      Enabled         =   True
+      FontName        =   "System"
+      FontSize        =   0.0
+      FontUnit        =   0
+      Height          =   694
+      Index           =   -2147483648
+      Italic          =   False
+      Left            =   20
+      LockBottom      =   True
+      LockedInPosition=   False
+      LockLeft        =   True
+      LockRight       =   True
+      LockTop         =   True
+      Panels          =   ""
+      Scope           =   0
+      SmallTabs       =   False
+      TabDefinition   =   "HTML\rTree\rReport"
+      TabIndex        =   0
+      TabPanelIndex   =   0
+      TabStop         =   True
+      Tooltip         =   ""
+      Top             =   52
+      Transparent     =   False
+      Underline       =   False
+      Value           =   0
+      Visible         =   True
+      Width           =   1044
+   End
+   Begin DesktopTextField URL
       AllowAutoDeactivate=   True
       AllowFocusRing  =   True
-      AllowSpellChecking=   True
-      AllowStyledText =   True
+      AllowSpellChecking=   False
       AllowTabs       =   False
       BackgroundColor =   &cFFFFFF
       Bold            =   False
@@ -39,25 +69,21 @@ Begin DesktopWindow Window1
       FontUnit        =   0
       Format          =   ""
       HasBorder       =   True
-      HasHorizontalScrollbar=   False
-      HasVerticalScrollbar=   True
-      Height          =   726
-      HideSelection   =   True
+      Height          =   22
+      Hint            =   ""
       Index           =   -2147483648
       Italic          =   False
-      Left            =   20
-      LineHeight      =   0.0
-      LineSpacing     =   1.0
-      LockBottom      =   True
+      Left            =   83
+      LockBottom      =   False
       LockedInPosition=   False
       LockLeft        =   True
       LockRight       =   True
       LockTop         =   True
       MaximumCharactersAllowed=   0
-      Multiline       =   True
+      Password        =   False
       ReadOnly        =   False
-      Scope           =   2
-      TabIndex        =   0
+      Scope           =   0
+      TabIndex        =   1
       TabPanelIndex   =   0
       TabStop         =   True
       Text            =   ""
@@ -67,10 +93,72 @@ Begin DesktopWindow Window1
       Top             =   20
       Transparent     =   False
       Underline       =   False
-      UnicodeMode     =   1
       ValidationMask  =   ""
       Visible         =   True
-      Width           =   1044
+      Width           =   889
+   End
+   Begin DesktopLabel Label1
+      AllowAutoDeactivate=   True
+      Bold            =   False
+      Enabled         =   True
+      FontName        =   "System"
+      FontSize        =   0.0
+      FontUnit        =   0
+      Height          =   20
+      Index           =   -2147483648
+      Italic          =   False
+      Left            =   20
+      LockBottom      =   False
+      LockedInPosition=   False
+      LockLeft        =   True
+      LockRight       =   False
+      LockTop         =   True
+      Multiline       =   False
+      Scope           =   0
+      Selectable      =   False
+      TabIndex        =   2
+      TabPanelIndex   =   0
+      TabStop         =   True
+      Text            =   "URL:"
+      TextAlignment   =   3
+      TextColor       =   &c000000
+      Tooltip         =   ""
+      Top             =   20
+      Transparent     =   False
+      Underline       =   False
+      Visible         =   True
+      Width           =   51
+   End
+   Begin DesktopButton ButtonProcess
+      AllowAutoDeactivate=   True
+      Bold            =   False
+      Cancel          =   False
+      Caption         =   "Process"
+      Default         =   False
+      Enabled         =   True
+      FontName        =   "System"
+      FontSize        =   0.0
+      FontUnit        =   0
+      Height          =   20
+      Index           =   -2147483648
+      Italic          =   False
+      Left            =   984
+      LockBottom      =   False
+      LockedInPosition=   False
+      LockLeft        =   False
+      LockRight       =   True
+      LockTop         =   True
+      MacButtonStyle  =   0
+      Scope           =   0
+      TabIndex        =   3
+      TabPanelIndex   =   0
+      TabStop         =   True
+      Tooltip         =   ""
+      Top             =   20
+      Transparent     =   False
+      Underline       =   False
+      Visible         =   True
+      Width           =   80
    End
 End
 #tag EndDesktopWindow
@@ -80,17 +168,17 @@ End
 		Sub Opening()
 		  // Non-strict mode.
 		  Parser = New HTMLParser(False)
-		  Var html As String = TEST_GITHUB
+		  Var html As String = TEST_GARRYPETTET_HTML
+		  
+		  Parser.TrackWarningsAndInfo = False
 		  
 		  Var watch As New StopWatch(True)
 		  Var doc As HTMLNode = Parser.Parse(html)
 		  watch.Stop
 		  
-		  Var report As String = GenerateValidationReport(Parser.Errors)
+		  Var report As String = GenerateValidationReport(Parser.Issues)
 		  
 		  report = "Took " + watch.ElapsedMilliseconds.ToString + " ms to parse." + EndOfLine + EndOfLine + report
-		  
-		  Output.Text = report
 		  
 		  ' // Traverse the tree.
 		  ' Var s() As String
@@ -101,10 +189,6 @@ End
 		  ' Else
 		  ' Output.Text = String.FromArray(s, EndOfLine)
 		  ' End If
-		  
-		  // 2813 ms before
-		  // 2812 ms with pragmas
-		  // 2805 with TAB constant
 		  
 		End Sub
 	#tag EndEvent
