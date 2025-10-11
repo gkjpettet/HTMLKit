@@ -10,3 +10,4 @@ Debug*/Debug*\ Libs
 *.xojo_uistate
 *.obsolete*
 src/.DS_Store
+.DS_Store

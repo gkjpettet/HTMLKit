@@ -102,6 +102,7 @@ End
 		  ' Output.Text = String.FromArray(s, EndOfLine)
 		  ' End If
 		  
+		  // 2813 ms before
 		End Sub
 	#tag EndEvent
 
