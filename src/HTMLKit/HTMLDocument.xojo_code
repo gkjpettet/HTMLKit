@@ -88,31 +88,31 @@ Protected Class HTMLDocument
 		  Case "img"
 		    If node.AttributeValue("src") = "" Then
 		      AddError(HTMLParserException.Types.MissingRequiredAttribute, _
-		      "<img> tag missing required 'src' attribute", HTMLParserException.Severities.Error)
+		      "<img> tag missing required `src` attribute", HTMLParserException.Severities.Error)
 		    End If
 		    If node.AttributeValue("alt") = "" And mStrictMode Then
 		      AddError(HTMLParserException.Types.MissingRequiredAttribute, _
-		      "<img> tag missing 'alt' attribute for accessibility", HTMLParserException.Severities.Warning)
+		      "<img> tag missing `alt` attribute for accessibility", HTMLParserException.Severities.Warning)
 		    End If
 		    
 		  Case "a"
 		    If TrackWarningsAndInfo Or mStrictMode Then
 		      If node.AttributeValue("href") = "" And node.AttributeValue("name") = "" Then
 		        AddError(HTMLParserException.Types.MissingRequiredAttribute, _
-		        "<a> tag should have 'href' or 'name' attribute", HTMLParserException.Severities.Warning)
+		        "<a> tags should normally have `href` or `name` attributes", HTMLParserException.Severities.Info)
 		      End If
 		    End If
 		    
 		  Case "form"
 		    If node.AttributeValue("action") = "" And mStrictMode Then
 		      AddError(HTMLParserException.Types.MissingRequiredAttribute, _
-		      "<form> tag missing 'action' attribute", HTMLParserException.Severities.Info)
+		      "<form> tag missing `action` attribute", HTMLParserException.Severities.Info)
 		    End If
 		    
 		  Case "label"
 		    If node.AttributeValue("for") = "" And mStrictMode Then
 		      AddError(HTMLParserException.Types.MissingRequiredAttribute, _
-		      "<label> tag should have 'for' attribute", HTMLParserException.Severities.Info)
+		      "<label> tag should have `for` attribute", HTMLParserException.Severities.Info)
 		    End If
 		  End Select
 		  
@@ -1424,10 +1424,6 @@ Protected Class HTMLDocument
 		  "week", "color", "checkbox", "radio", "file", "submit", "reset", _
 		  "button", "hidden", "image", "search")
 		  
-		  Static validRels() As String = Array("alternate", "author", "bookmark", _
-		  "external", "help", "license", "next", "nofollow", "noreferrer", _
-		  "noopener", "prev", "search", "tag")
-		  
 		  // Validate input types.
 		  If TrackWarningsAndInfo Or mStrictMode Then
 		    If tagName = "input" And attrName = "type" Then
@@ -1446,18 +1442,6 @@ Protected Class HTMLDocument
 		    End If
 		  End If
 		  
-		  // Validate rel attribute.
-		  If TrackWarningsAndInfo Or mStrictMode Then
-		    If attrName = "rel" And tagName = "a" Then
-		      Var rels() As String = value.Split(" ")
-		      For Each rel As String In rels
-		        If validRels.IndexOf(rel.Lowercase) = -1 Then
-		          AddError(HTMLParserException.Types.InvalidAttribute, _
-		          "Unknown rel value: '" + rel + "'", HTMLParserException.Severities.Info)
-		        End If
-		      Next rel
-		    End If
-		  End If
 		  
 		End Sub
 	#tag EndMethod

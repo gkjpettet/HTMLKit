@@ -352,7 +352,7 @@ End
 
 
 	#tag Method, Flags = &h21, Description = 47656E65726174657320616E642072657475726E7320616E2048544D4C2076616C69646174696F6E207265706F72742E
-		Private Sub UpdateValidationReport(issues() As HTMLKit.HTMLParserException)
+		Private Sub UpdateValidationReport(issues() As HTMLParserException)
 		  #Pragma DisableBoundsChecking
 		  #Pragma StackOverflowChecking False
 		  
@@ -360,44 +360,18 @@ End
 		  
 		  If issues.Count = 0 Then Return
 		  
-		  For Each issue As HTMLKit.HTMLParserException In issues
+		  For Each issue As HTMLParserException In issues
 		    
 		    ValidationReport.AddRow(issue.SeverityString, issue.Line.ToString, issue.Column.ToString, issue.Message)
 		    
 		  Next issue
 		  
-		  ' Var md() As String
-		  ' 
-		  ' md.Add("# HTML Validation Report")
-		  ' md.Add("")
-		  ' 
-		  ' If errors.Count = 0 Then
-		  ' md.Add("No issues found.")
-		  ' Else
-		  ' md.Add(If(errors.Count = 1, "1 issue", errors.Count.ToString + " issues") + " found.")
-		  ' md.Add("")
-		  ' md.Add("## Issues")
-		  ' For Each err As HTMLParserException In errors
-		  ' md.Add(err.ToString)
-		  ' If err.Context <> "" Then
-		  ' md.Add("")
-		  ' md.Add("```html")
-		  ' md.Add(err.Context)
-		  ' md.Add("```")
-		  ' End If
-		  ' md.Add("")
-		  ' Next err
-		  ' End If
-		  ' 
-		  ' Var result As String = String.FromArray(md, EndOfLine)
-		  ' 
-		  ' Return result
 		End Sub
 	#tag EndMethod
 
 
 	#tag Property, Flags = &h0
-		Document As HTMLKit.HTMLDocument
+		Document As HTMLDocument
 	#tag EndProperty
 
 
@@ -418,9 +392,9 @@ End
 		  ReportInfo.Text = ""
 		  
 		  // Try to get the contents of the provided URL.
-		  Var link As HTMLKit.URL
+		  Var link As URL
 		  Try
-		    link = New HTMLKit.URL(LinkField.Text)
+		    link = New URL(LinkField.Text)
 		  Catch e As RuntimeException
 		    // Either the link timed out or something bad happened trying to get the contents.
 		    MessageBox("Unable to get the contents of `" + LinkField.Text + "`: " + e.Message)
@@ -434,7 +408,7 @@ End
 		  
 		  HTMLField.Text = link.Contents
 		  
-		  Document = New HTMLKit.HTMLDocument(False)
+		  Document = New HTMLDocument(False)
 		  Document.TrackWarningsAndInfo = True
 		  
 		  // Parse the document.
