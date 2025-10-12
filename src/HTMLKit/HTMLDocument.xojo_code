@@ -13,7 +13,7 @@ Protected Class HTMLDocument
 		  
 		  // Add a context snippet.
 		  Var contextStart As Integer = Max(0, mPosition - 30)
-		  Var contextEnd As Integer = Min(mLength, mPosition + 30)
+		  Var contextEnd As Integer = Min(mCharsCount, mPosition + 30)
 		  e.Context = SubString(contextStart, contextEnd - contextStart)
 		  
 		  mIssues.Add(e)
@@ -57,16 +57,9 @@ Protected Class HTMLDocument
 		  #Pragma NilObjectChecking False
 		  
 		  For i As Integer = 1 To places
-		    If mPosition <= mCharsLastIndex Then
-		      If mChars(mPosition) = EndOfLine.UNIX Then
-		        mLineNumber = mLineNumber + 1
-		        mColumnNumber = 1
-		      Else
-		        mColumnNumber = mColumnNumber + 1
-		      End If
-		      Advance
-		    End If
+		    Advance
 		  Next i
+		  
 		  
 		End Sub
 	#tag EndMethod
@@ -522,7 +515,7 @@ Protected Class HTMLDocument
 		  mChars = mHTML.Characters
 		  
 		  mPosition = 0
-		  mLength = html.Length
+		  mLength = mHTML.Length
 		  mCharsLastIndex = mChars.LastIndex
 		  mCharsCount = mChars.Count
 		  mLineNumber = 1
@@ -802,11 +795,12 @@ Protected Class HTMLDocument
 		  Wend
 		  
 		  // This is an unclosed CDATA section - treat the rest of the document as CDATA.
-		  content = SubString(startPos, mLength - startPos)
+		  content = SubString(startPos, mCharsCount - startPos)
 		  Var cdataNode As New HTMLNode(HTMLNode.Types.CDATA)
 		  cdataNode.Content = content
 		  mCurrentNode.AddChild(cdataNode)
-		  mPosition = mLength
+		  ' mPosition = mLength
+		  mPosition = mCharsCount
 		  
 		End Sub
 	#tag EndMethod
@@ -899,11 +893,12 @@ Protected Class HTMLDocument
 		  Wend
 		  
 		  // Unclosed comment, add what we have...
-		  Var comment As String = SubString(startPos, mLength - startPos)
+		  Var comment As String = SubString(startPos, mCharsCount - startPos)
 		  Var commentNode As New HTMLNode(HTMLNode.Types.Comment)
 		  commentNode.Content = comment
 		  mCurrentNode.AddChild(commentNode)
-		  mPosition = mLength
+		  ' mPosition = mLength
+		  mPosition = mCharsCount
 		  
 		End Sub
 	#tag EndMethod
@@ -1182,7 +1177,7 @@ Protected Class HTMLDocument
 		      Var nextPos As Integer = mPosition + closingTag.Length
 		      If nextPos >= mCharsCount Then Exit
 		      
-		      Var nextChar As String = mHTML.Middle(nextPos, 1)
+		      Var nextChar As String = mChars(nextPos)
 		      If nextChar = ">" Or nextChar = " " Or nextChar = TAB Or nextChar = EndOfLine.UNIX Then
 		        // Found a valid closing tag.
 		        content = SubString(startPos, mPosition - startPos)
@@ -1205,19 +1200,13 @@ Protected Class HTMLDocument
 		  
 		  // If we didn't find a closing tag, use everything until the end.
 		  If content = "" And mPosition >= mCharsCount Then
-		    content = SubString(startPos, mLength - startPos)
+		    content = SubString(startPos, mCharsCount - startPos)
 		  End If
 		  
-		  // Add the content as a text node (or CDATA if it contains CDATA markers).
 		  If content <> "" Then
-		    // Check if the content contains CDATA sections. If so, parse them.
-		    If content.IndexOf("<![CDATA[") <> -1 Then
-		      ParseMixedCDATAContent(parentNode, content)
-		    Else
-		      Var textNode As New HTMLNode(HTMLNode.Types.Text)
-		      textNode.Content = content // We don't decode entities in raw text tags (e.g: <script> and <style> nodes).
-		      parentNode.AddChild(textNode)
-		    End If
+		    Var textNode As New HTMLNode(HTMLNode.Types.Text)
+		    textNode.Content = content // We don't decode entities in raw text tags (e.g: <script> and <style> nodes).
+		    parentNode.AddChild(textNode)
 		  End If
 		  
 		End Sub
@@ -1404,28 +1393,21 @@ Protected Class HTMLDocument
 		  #Pragma DisableBoundsChecking
 		  #Pragma NilObjectChecking False
 		  
-		  If mCharsCount = mLength Then
-		    // There are no funny characters in the `mChars` array so we can use Xojo's optimised `String.Middle()` method.
-		    Return mHTML.Middle(startPos, length)
-		  Else
-		    // There are odd characters in `mChars` so we need to use a slower array-based method.
-		    If startPos < 0 Or startPos >= mCharsLastIndex Or length <=0 Then Return ""
-		    
-		    Var endPos As Integer = Min(startPos + length, mCharsCount)
-		    Var actualLength As Integer = endPos - startPos
-		    
-		    If actualLength <= 0 Then Return ""
-		    
-		    // Extract the slice of characters.
-		    Var chars() As String
-		    chars.ResizeTo(actualLength - 1)
-		    Var iLimit As Integer = chars.LastIndex
-		    For i As Integer = 0 To iLimit
-		      chars(i) = mChars(startPos + i)
-		    Next
-		    
-		    Return String.FromArray(chars, "")
-		  End If
+		  If startPos < 0 Or startPos >= mChars.Count Or length <= 0 Then Return ""
+		  
+		  Var endPos As Integer = Min(startPos + length, mChars.Count)
+		  Var actualLength As Integer = endPos - startPos
+		  
+		  If actualLength <= 0 Then Return ""
+		  
+		  ' Extract the slice of characters.
+		  Var chars() As String
+		  chars.ResizeTo(actualLength - 1)
+		  For i As Integer = 0 To chars.LastIndex
+		    chars(i) = mChars(startPos + i)
+		  Next
+		  
+		  Return String.FromArray(chars, "")
 		End Function
 	#tag EndMethod
 
