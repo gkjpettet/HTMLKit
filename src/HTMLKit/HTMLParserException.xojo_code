@@ -42,9 +42,6 @@ Inherits RuntimeException
 		  
 		  Var typeStr As String
 		  Select Case Type
-		  Case HTMLParserException.Types.InvalidNesting
-		    typeStr = "Invalid Nesting"
-		    
 		  Case HTMLParserException.Types.DeprecatedTag
 		    typeStr = "Deprecated Tag"
 		    
@@ -56,6 +53,12 @@ Inherits RuntimeException
 		    
 		  Case HTMLParserException.Types.InvalidCharacter
 		    typeStr = "Invalid Character"
+		    
+		  Case HTMLParserException.Types.InvalidNesting
+		    typeStr = "Invalid Nesting"
+		    
+		  Case HTMLParserException.Types.InvalidStructure
+		    typeStr = "Invalid Structure"
 		    
 		  Case HTMLParserException.Types.MalformedTag
 		    typeStr = "Malformed Tag"
@@ -134,6 +137,7 @@ Inherits RuntimeException
 		  UnmatchedClosingTag
 		  MalformedTag
 		  InvalidAttribute
+		  InvalidStructure
 		  UnclosedComment
 		  UnclosedCDATA
 		  DuplicateID

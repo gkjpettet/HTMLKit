@@ -394,6 +394,15 @@ Protected Class HTMLNode
 		End Function
 	#tag EndMethod
 
+	#tag Method, Flags = &h0
+		Function HasAttribute(attributeName As String) As Boolean
+		  /// True if this node has an attribute with the specified name.
+		  
+		  Return Attributes_.HasKey(attributeName)
+		  
+		End Function
+	#tag EndMethod
+
 	#tag Method, Flags = &h0, Description = 52657475726E732074686520636F6E636174656E617465642072617720746578742074686174206C69657320696E736964652074686973206E6F64652C2069676E6F72696E6720616E79206D61726B75702E20557365207768656E20796F75206E6565642074686520706C61696E207465787475616C207061796C6F6164206F662061207375627472656520776974686F757420616E792077686974657370616365206E6F726D616C69736174696F6E206F7220626C6F636BE28091656C656D656E742073706163696E67206C6F6769632028666F7220746861742073656520604765744E6F726D616C6973656454657874282960292E
 		Function InnerText() As String
 		  /// Returns the concatenated raw text that lies inside this node, ignoring any markup.
@@ -1089,7 +1098,7 @@ Protected Class HTMLNode
 		    result = spaces + "<!DOCTYPE " + Content + ">" + EndOfLine
 		    
 		  Case HTMLNode.Types.Text
-		    result = spaces + "" + Content.ReplaceAll(EndOfLine, " ") + EndOfLine
+		    result = spaces + Content.ReplaceAll(EndOfLine, " ") + EndOfLine
 		    
 		  Case HTMLNode.Types.Element
 		    // <elementName
@@ -1128,7 +1137,7 @@ Protected Class HTMLNode
 		Children() As HTMLNode
 	#tag EndProperty
 
-	#tag Property, Flags = &h0, Description = 54686973206E6F64652773207465787420636F6E74656E742E20446F206E6F74206D6F64696679206469726563746C79202D2075736520604164644368696C6428296020696620796F752764206C696B6520746F2061646420746F20746869732E
+	#tag Property, Flags = &h0, Description = 54686973206E6F64652773207465787420636F6E74656E742E
 		Content As String
 	#tag EndProperty
 
@@ -1141,10 +1150,45 @@ Protected Class HTMLNode
 		HasChildren As Boolean
 	#tag EndComputedProperty
 
+	#tag ComputedProperty, Flags = &h0, Description = 52657475726E7320746865203C686561643E206E6F64652077697468696E2074686973206E6F64652773207472656520627920736561726368696E6720666F7220697427732022646F63756D656E742220616E636573746F722E204D61792072657475726E204E696C2E20457870656E73697665206F7065726174696F6E20617320636F6D70757465642E
+		#tag Getter
+			Get
+			  /// Returns the <head> node within this node's tree by searching for it's "document" ancestor.
+			  /// May return Nil.
+			  /// Expensive operation as computed.
+			  
+			  If Self.TagName.Lowercase = "head" Then Return Self
+			  
+			  Var doc As HTMLNode
+			  If doc = Nil Then
+			    doc = Self
+			  Else
+			    doc = Ancestor("document")
+			  End If
+			  
+			  If doc = Nil Then Return Nil
+			  
+			  // Find the "html" node.
+			  For Each child As HTMLNode In Children
+			    If child.TagName.Lowercase = "html" Then
+			      Var htmlElement As HTMLNode = child
+			      For Each node As HTMLNode In htmlElement.Children
+			        If node.TagName.Lowercase = "head" Then Return node
+			      Next node
+			    End If
+			  Next child
+			  
+			  Return Nil
+			  
+			End Get
+		#tag EndGetter
+		Head As HTMLNode
+	#tag EndComputedProperty
+
 	#tag ComputedProperty, Flags = &h0, Description = 547275652069662074686973206E6F6465206973206120626C6F636B20656C656D656E742028652E672E203C6469763E2C203C703E292E20436F6D707574656420285472756520696620697473206E616D65206170706561727320696E206048544D4C5061727365722E426C6F636B5461677360292E
 		#tag Getter
 			Get
-			  Return Self.Type = Types.Element And HTMLParser.BlockTags.IndexOf(TagName) <> -1
+			  Return Self.Type = Types.Element And HTMLDocument.BlockTags.IndexOf(TagName) <> -1
 			  
 			End Get
 		#tag EndGetter
@@ -1154,7 +1198,7 @@ Protected Class HTMLNode
 	#tag ComputedProperty, Flags = &h0, Description = 54727565207768656E20746865206E6F646520697320616E20656C656D656E7420616E642069747320746167206E616D65206170706561727320696E206048544D4C5061727365722E496E6C696E6554616773602E
 		#tag Getter
 			Get
-			  Return Self.Type = Types.Element And HTMLParser.InlineTags.IndexOf(TagName) <> -1
+			  Return Self.Type = Types.Element And HTMLDocument.InlineTags.IndexOf(TagName) <> -1
 			  
 			End Get
 		#tag EndGetter
@@ -1168,7 +1212,7 @@ Protected Class HTMLNode
 	#tag ComputedProperty, Flags = &h0, Description = 547275652069662074686973206E6F646520697320616E20656C656D656E742077686F736520746167206E616D65206973206C697374656420696E206048544D4C5061727365722E53656D616E74696354616773602E20496E6469636174657320746861742074686520656C656D656E742063617272696573206D65616E696E67206265796F6E6420707572652070726573656E746174696F6E2E
 		#tag Getter
 			Get
-			  Return Self.Type = Types.Element And HTMLParser.SemanticTags.IndexOf(TagName) <> -1
+			  Return Self.Type = Types.Element And HTMLDocument.SemanticTags.IndexOf(TagName) <> -1
 			  
 			End Get
 		#tag EndGetter
@@ -1326,6 +1370,14 @@ Protected Class HTMLNode
 			InitialValue=""
 			Type="String"
 			EditorType="MultiLineEditor"
+		#tag EndViewProperty
+		#tag ViewProperty
+			Name="HasChildren"
+			Visible=false
+			Group="Behavior"
+			InitialValue=""
+			Type="Boolean"
+			EditorType=""
 		#tag EndViewProperty
 	#tag EndViewBehavior
 End Class

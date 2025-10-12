@@ -1,5 +1,5 @@
 #tag Class
-Protected Class HTMLParser
+Protected Class HTMLDocument
 	#tag Method, Flags = &h21, Description = 4164647320612070617273696E67206572726F722E20496E20737472696374206D6F64652C2077652072616973652074686520657863657074696F6E20696E206164646974696F6E20746F206C6F6767696E672069742E
 		Private Sub AddError(errorType As HTMLParserException.Types, message As String, severity As HTMLParserException.Severities = HTMLParserException.Severities.Warning)
 		  /// Adds a parsing error.
@@ -508,7 +508,7 @@ Protected Class HTMLParser
 	#tag EndMethod
 
 	#tag Method, Flags = &h0, Description = 5061727365732048544D4C20696E746F20612074726565206F662048544D4C206E6F6465732E
-		Function Parse(html As String) As HTMLNode
+		Sub Parse(html As String)
 		  /// Parses HTML into a tree of HTML nodes.
 		  
 		  #Pragma StackOverflowChecking False
@@ -562,9 +562,8 @@ Protected Class HTMLParser
 		    CloseTag(tagName)
 		  Wend
 		  
-		  Return mRoot
 		  
-		End Function
+		End Sub
 	#tag EndMethod
 
 	#tag Method, Flags = &h21, Description = 50617273657320616E206174747269627574652E
@@ -1055,6 +1054,26 @@ Protected Class HTMLParser
 		  Var node As New HTMLNode(HTMLNode.Types.Element)
 		  node.TagName = tagName
 		  
+		  // Store a reference if this if it's the <head> or <body> element.
+		  Select Case tagName
+		  Case "head"
+		    // If the document contains more than one <head>, we’ll keep the first but raise it as an error.
+		    If mHead = Nil Then
+		      mHead = node
+		    Else
+		      AddError(HTMLParserException.Types.InvalidStructure, "<head> encountered but the document already contains a <head> element.", _
+		      HTMLParserException.Severities.Error)
+		    End If
+		  Case "body"
+		    // If the document contains more than one <body>, we’ll keep the first but raise it as an error.
+		    If mBody = Nil Then
+		      mBody = node
+		    Else
+		      AddError(HTMLParserException.Types.InvalidStructure, "<body> encountered but the document already contains a <body> element.", _
+		      HTMLParserException.Severities.Error)
+		    End If
+		  End Select
+		  
 		  // Parse attributes with validation.
 		  SkipWhitespace
 		  Var seenAttributes As New Dictionary
@@ -1486,6 +1505,17 @@ Protected Class HTMLParser
 		Protected Shared AutoCloseTags As Dictionary
 	#tag EndComputedProperty
 
+	#tag ComputedProperty, Flags = &h0, Description = 52657475726E7320746865203C626F64793E20656C656D656E742E204D6179206265204E696C2E
+		#tag Getter
+			Get
+			  Return mBody
+			  
+			  
+			End Get
+		#tag EndGetter
+		Body As HTMLNode
+	#tag EndComputedProperty
+
 	#tag ComputedProperty, Flags = &h1, Description = 4D61707320656E74697479206E616D657320746F207468656972206368617261637465722076616C756520284B6579203D20656E74697479206E616D652028537472696E67292C2056616C7565203D206368617261637465722028537472696E6729292E
 		#tag Getter
 			Get
@@ -1510,6 +1540,20 @@ Protected Class HTMLParser
 		Protected hasHTMLComments As Boolean = False
 	#tag EndProperty
 
+	#tag ComputedProperty, Flags = &h0, Description = 52657475726E7320746865203C686561643E20656C656D656E742E204D6179206265204E696C2E
+		#tag Getter
+			Get
+			  Return mHead
+			  
+			End Get
+		#tag EndGetter
+		Head As HTMLNode
+	#tag EndComputedProperty
+
+	#tag Property, Flags = &h1
+		Protected mBody As HTMLNode
+	#tag EndProperty
+
 	#tag Property, Flags = &h1
 		Protected mChars() As String
 	#tag EndProperty
@@ -1528,6 +1572,10 @@ Protected Class HTMLParser
 
 	#tag Property, Flags = &h1
 		Protected mCurrentNode As HTMLNode
+	#tag EndProperty
+
+	#tag Property, Flags = &h1
+		Protected mHead As HTMLNode
 	#tag EndProperty
 
 	#tag Property, Flags = &h1
@@ -1565,6 +1613,16 @@ Protected Class HTMLParser
 	#tag Property, Flags = &h1, Description = 466F7220747261636B696E67206475706C69636174652049447320696E2074686520646F63756D656E742E
 		Protected mTrackIDs As Dictionary
 	#tag EndProperty
+
+	#tag ComputedProperty, Flags = &h0
+		#tag Getter
+			Get
+			  Return mRoot
+			  
+			End Get
+		#tag EndGetter
+		Root As HTMLNode
+	#tag EndComputedProperty
 
 	#tag Property, Flags = &h1, Description = 547275652069662074686520446F635479706520686173206265656E2070726F63657373656420696E207468697320646F63756D656E742E
 		Protected seenDocType As Boolean = False
@@ -1618,6 +1676,14 @@ Protected Class HTMLParser
 			Group="Position"
 			InitialValue="0"
 			Type="Integer"
+			EditorType=""
+		#tag EndViewProperty
+		#tag ViewProperty
+			Name="TrackWarningsAndInfo"
+			Visible=false
+			Group="Behavior"
+			InitialValue="True"
+			Type="Boolean"
 			EditorType=""
 		#tag EndViewProperty
 	#tag EndViewBehavior

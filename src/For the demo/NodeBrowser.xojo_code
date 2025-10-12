@@ -3,9 +3,9 @@ Protected Class NodeBrowser
 Inherits DesktopListBox
 	#tag Event
 		Sub RowExpanded(row As Integer)
-		  Var node As HTMLNode = RowTagAt(row)
+		  Var node As HTMLKit.HTMLNode = RowTagAt(row)
 		  
-		  For Each child As HTMLNode In node.Children
+		  For Each child As HTMLKit.HTMLNode In node.Children
 		    If child.HasChildren Then
 		      Me.AddExpandableRow(child.ToString)
 		    Else
@@ -20,10 +20,16 @@ Inherits DesktopListBox
 
 
 	#tag Method, Flags = &h0
-		Sub AddRoot(root As HTMLNode)
-		  AddExpandableRow(root.TagName)
+		Sub AddDocument(doc As HTMLKit.HTMLDocument)
+		  Me.RemoveAllRows
 		  
-		  RowTagAt(Me.LastAddedRowIndex) = root
+		  If doc = Nil Then Return
+		  
+		  If doc.Root = Nil Then Return
+		  
+		  AddExpandableRow(doc.Root.TagName)
+		  
+		  RowTagAt(Me.LastAddedRowIndex) = doc.Root
 		  
 		End Sub
 	#tag EndMethod
