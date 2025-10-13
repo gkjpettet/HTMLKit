@@ -12,7 +12,6 @@ HTMLKit consists of four classes:
 This is all 100% native Xojo code with no external dependencies.
 
 ## Usage
-You can fetch the contents of a URL from a string like so:
 
 ```xojo
 Var linkString As String = "https://garrypettet.com"
