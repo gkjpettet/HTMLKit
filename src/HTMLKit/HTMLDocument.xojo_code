@@ -1,7 +1,7 @@
 #tag Class
 Protected Class HTMLDocument
 	#tag Method, Flags = &h21, Description = 4164647320612070617273696E67206572726F722E20496E20737472696374206D6F64652C2077652072616973652074686520657863657074696F6E20696E206164646974696F6E20746F206C6F6767696E672069742E
-		Private Sub AddError(errorType As HTMLParserException.Types, message As String, severity As HTMLParserException.Severities = HTMLParserException.Severities.Warning)
+		Private Sub AddError(errorType As HTMLException.Types, message As String, severity As HTMLException.Severities = HTMLException.Severities.Warning)
 		  /// Adds a parsing error.
 		  /// In strict mode, we raise the exception in addition to logging it.
 		  
@@ -9,7 +9,7 @@ Protected Class HTMLDocument
 		  #Pragma DisableBoundsChecking
 		  #Pragma NilObjectChecking False
 		  
-		  Var e As New HTMLParserException(errorType, mLineNumber, mColumnNumber, message, severity)
+		  Var e As New HTMLException(errorType, mLineNumber, mColumnNumber, message, severity)
 		  
 		  // Add a context snippet.
 		  Var contextStart As Integer = Max(0, mPosition - 30)
@@ -19,7 +19,7 @@ Protected Class HTMLDocument
 		  mIssues.Add(e)
 		  
 		  // In strict mode, errors are fatal.
-		  If mStrictMode And severity = HTMLParserException.Severities.Error Then
+		  If mStrictMode And severity = HTMLException.Severities.Error Then
 		    Raise e
 		  End If
 		  
@@ -87,32 +87,32 @@ Protected Class HTMLDocument
 		  Select Case node.TagName
 		  Case "img"
 		    If node.AttributeValue("src") = "" Then
-		      AddError(HTMLParserException.Types.MissingRequiredAttribute, _
-		      "<img> tag missing required `src` attribute", HTMLParserException.Severities.Error)
+		      AddError(HTMLException.Types.MissingRequiredAttribute, _
+		      "<img> tag missing required `src` attribute", HTMLException.Severities.Error)
 		    End If
 		    If node.AttributeValue("alt") = "" And mStrictMode Then
-		      AddError(HTMLParserException.Types.MissingRequiredAttribute, _
-		      "<img> tag missing `alt` attribute for accessibility", HTMLParserException.Severities.Warning)
+		      AddError(HTMLException.Types.MissingRequiredAttribute, _
+		      "<img> tag missing `alt` attribute for accessibility", HTMLException.Severities.Warning)
 		    End If
 		    
 		  Case "a"
 		    If TrackWarningsAndInfo Or mStrictMode Then
 		      If node.AttributeValue("href") = "" And node.AttributeValue("name") = "" Then
-		        AddError(HTMLParserException.Types.MissingRequiredAttribute, _
-		        "<a> tags should normally have `href` or `name` attributes", HTMLParserException.Severities.Info)
+		        AddError(HTMLException.Types.MissingRequiredAttribute, _
+		        "<a> tags should normally have `href` or `name` attributes", HTMLException.Severities.Info)
 		      End If
 		    End If
 		    
 		  Case "form"
 		    If node.AttributeValue("action") = "" And mStrictMode Then
-		      AddError(HTMLParserException.Types.MissingRequiredAttribute, _
-		      "<form> tag missing `action` attribute", HTMLParserException.Severities.Info)
+		      AddError(HTMLException.Types.MissingRequiredAttribute, _
+		      "<form> tag missing `action` attribute", HTMLException.Severities.Info)
 		    End If
 		    
 		  Case "label"
 		    If node.AttributeValue("for") = "" And mStrictMode Then
-		      AddError(HTMLParserException.Types.MissingRequiredAttribute, _
-		      "<label> tag should have `for` attribute", HTMLParserException.Severities.Info)
+		      AddError(HTMLException.Types.MissingRequiredAttribute, _
+		      "<label> tag should have `for` attribute", HTMLException.Severities.Info)
 		    End If
 		  End Select
 		  
@@ -265,10 +265,10 @@ Protected Class HTMLDocument
 		  #Pragma DisableBoundsChecking
 		  #Pragma NilObjectChecking False
 		  
-		  For Each e As HTMLParserException In mIssues
+		  For Each e As HTMLException In mIssues
 		    If e = Nil Then Continue
 		    
-		    If e.Severity = HTMLParserException.Severities.Error Then
+		    If e.Severity = HTMLException.Severities.Error Then
 		      Return True
 		    End If
 		  Next e
@@ -286,10 +286,10 @@ Protected Class HTMLDocument
 		  #Pragma DisableBoundsChecking
 		  #Pragma NilObjectChecking False
 		  
-		  For Each e As HTMLParserException In mIssues
+		  For Each e As HTMLException In mIssues
 		    If e = Nil Then Continue
 		    
-		    If e.Severity = HTMLParserException.Severities.Info Then
+		    If e.Severity = HTMLException.Severities.Info Then
 		      Return True
 		    End If
 		  Next e
@@ -321,10 +321,10 @@ Protected Class HTMLDocument
 		  #Pragma DisableBoundsChecking
 		  #Pragma NilObjectChecking False
 		  
-		  For Each e As HTMLParserException In mIssues
+		  For Each e As HTMLException In mIssues
 		    If e = Nil Then Continue
 		    
-		    If e.Severity = HTMLParserException.Severities.Warning Then
+		    If e.Severity = HTMLException.Severities.Warning Then
 		      Return True
 		    End If
 		  Next e
@@ -446,7 +446,7 @@ Protected Class HTMLDocument
 	#tag EndMethod
 
 	#tag Method, Flags = &h0, Description = 52657475726E7320616E792070617273696E672069737375657320286572726F72732C207761726E696E677320616E6420696E666F292074686174206F636375727265642E
-		Function Issues() As HTMLParserException()
+		Function Issues() As HTMLException()
 		  /// Returns any parsing issues (errors, warnings and info) that occurred.
 		  
 		  Return mIssues
@@ -550,8 +550,8 @@ Protected Class HTMLDocument
 		  // Check for unclosed tags and close any that remain.
 		  While mOpenTags.Count > 0
 		    Var tagName As String = mOpenTags(mOpenTags.LastIndex)
-		    AddError(HTMLParserException.Types.UnclosedTag, _
-		    "Tag <" + tagName + "> was not closed", HTMLParserException.Severities.Error)
+		    AddError(HTMLException.Types.UnclosedTag, _
+		    "Tag <" + tagName + "> was not closed", HTMLException.Severities.Error)
 		    CloseTag(tagName)
 		  Wend
 		  
@@ -691,16 +691,16 @@ Protected Class HTMLDocument
 		    If foundClosingQuote Then
 		      Advance // Skip the closing quote.
 		    Else
-		      AddError(HTMLParserException.Types.UnclosedQuote, _
-		      "Unclosed quote in attribute value", HTMLParserException.Severities.Error)
+		      AddError(HTMLException.Types.UnclosedQuote, _
+		      "Unclosed quote in attribute value", HTMLException.Severities.Error)
 		    End If
 		    
 		    Return value
 		  Else
 		    // Unquoted value.
 		    If mStrictMode Then
-		      AddError(HTMLParserException.Types.InvalidAttribute, _
-		      "Attribute values should be quoted", HTMLParserException.Severities.Warning)
+		      AddError(HTMLException.Types.InvalidAttribute, _
+		      "Attribute values should be quoted", HTMLException.Severities.Warning)
 		    End If
 		    
 		    Var startPos As Integer = mPosition
@@ -738,8 +738,8 @@ Protected Class HTMLDocument
 		    
 		    // Validate boolean attributes.
 		    If booleanAttrs.IndexOf(attrName.Lowercase) = -1 And mStrictMode Then
-		      AddError(HTMLParserException.Types.InvalidAttribute, _
-		      "Attribute '" + attrName + "' should have a value", HTMLParserException.Severities.Info)
+		      AddError(HTMLException.Types.InvalidAttribute, _
+		      "Attribute '" + attrName + "' should have a value", HTMLException.Severities.Info)
 		    End If
 		    Return
 		  End If
@@ -824,8 +824,8 @@ Protected Class HTMLDocument
 		  End If
 		  
 		  If tagName = "" Then
-		    AddError(HTMLParserException.Types.MalformedTag, _
-		    "Empty closing tag", HTMLParserException.Severities.Error)
+		    AddError(HTMLException.Types.MalformedTag, _
+		    "Empty closing tag", HTMLException.Severities.Error)
 		    Return
 		  End If
 		  
@@ -839,9 +839,9 @@ Protected Class HTMLDocument
 		  Next
 		  
 		  If foundIndex = -1 Then
-		    AddError(HTMLParserException.Types.UnmatchedClosingTag, _
+		    AddError(HTMLException.Types.UnmatchedClosingTag, _
 		    "Closing tag </" + tagName + "> has no matching opening tag", _
-		    HTMLParserException.Severities.Error)
+		    HTMLException.Severities.Error)
 		    Return
 		  End If
 		  
@@ -859,8 +859,8 @@ Protected Class HTMLDocument
 		    End If
 		    
 		    If TrackWarningsAndInfo Or mStrictMode Then
-		      AddError(HTMLParserException.Types.InvalidNesting, _
-		      "Closing tag </" + tagName + "> found before " + message, HTMLParserException.Severities.Warning)
+		      AddError(HTMLException.Types.InvalidNesting, _
+		      "Closing tag </" + tagName + "> found before " + message, HTMLException.Severities.Warning)
 		    End If
 		  End If
 		  
@@ -1009,8 +1009,8 @@ Protected Class HTMLDocument
 		  Var tagName As String = ParseTagName
 		  
 		  If tagName = "" Then
-		    AddError(HTMLParserException.Types.MalformedTag, _
-		    "Empty tag name", HTMLParserException.Severities.Error)
+		    AddError(HTMLException.Types.MalformedTag, _
+		    "Empty tag name", HTMLException.Severities.Error)
 		    Return
 		  End If
 		  
@@ -1019,17 +1019,17 @@ Protected Class HTMLDocument
 		  // Check for deprecated tags.
 		  If TrackWarningsAndInfo or mStrictMode Then
 		    If deprecatedTags.IndexOf(tagName) <> -1 Then
-		      AddError(HTMLParserException.Types.DeprecatedTag, _
-		      "Tag <" + tagName + "> is deprecated in HTML5", HTMLParserException.Severities.Warning)
+		      AddError(HTMLException.Types.DeprecatedTag, _
+		      "Tag <" + tagName + "> is deprecated in HTML5", HTMLException.Severities.Warning)
 		    End If
 		  End If
 		  
 		  // Check nesting rules.
 		  If TrackWarningsAndInfo Or mStrictMode Then
 		    If Not IsValidNesting(tagName) Then
-		      AddError(HTMLParserException.Types.InvalidNesting, _
+		      AddError(HTMLException.Types.InvalidNesting, _
 		      "Tag <" + tagName + "> cannot be nested inside <" + mCurrentNode.TagName + ">", _
-		      HTMLParserException.Severities.Warning)
+		      HTMLException.Severities.Warning)
 		    End If
 		  End If
 		  
@@ -1056,16 +1056,16 @@ Protected Class HTMLDocument
 		    If mHead = Nil Then
 		      mHead = node
 		    Else
-		      AddError(HTMLParserException.Types.InvalidStructure, "<head> encountered but the document already contains a <head> element.", _
-		      HTMLParserException.Severities.Error)
+		      AddError(HTMLException.Types.InvalidStructure, "<head> encountered but the document already contains a <head> element.", _
+		      HTMLException.Severities.Error)
 		    End If
 		  Case "body"
 		    // If the document contains more than one <body>, we’ll keep the first but raise it as an error.
 		    If mBody = Nil Then
 		      mBody = node
 		    Else
-		      AddError(HTMLParserException.Types.InvalidStructure, "<body> encountered but the document already contains a <body> element.", _
-		      HTMLParserException.Severities.Error)
+		      AddError(HTMLException.Types.InvalidStructure, "<body> encountered but the document already contains a <body> element.", _
+		      HTMLException.Severities.Error)
 		    End If
 		  End Select
 		  
@@ -1075,8 +1075,8 @@ Protected Class HTMLDocument
 		  Var prematureTagFound As Boolean = False
 		  While mPosition < mCharsCount And PeekChar <> ">" And PeekChar <> "/"
 		    If PeekChar = "<" Then
-		      AddError(HTMLParserException.Types.MalformedTag, _
-		      "Missing `>` for tag <" + tagName + "> before a new tag was encountered", HTMLParserException.Severities.Error)
+		      AddError(HTMLException.Types.MalformedTag, _
+		      "Missing `>` for tag <" + tagName + "> before a new tag was encountered", HTMLException.Severities.Error)
 		      prematureTagFound = True
 		      Exit
 		    End If
@@ -1090,9 +1090,9 @@ Protected Class HTMLDocument
 		    // Check for duplicate attributes.
 		    If TrackWarningsAndInfo Or mStrictMode Then
 		      If seenAttributes.HasKey(attrName.Lowercase) Then
-		        AddError(HTMLParserException.Types.InvalidAttribute, _
+		        AddError(HTMLException.Types.InvalidAttribute, _
 		        "Duplicate attribute '" + attrName + "' in <" + tagName + ">", _
-		        HTMLParserException.Severities.Warning)
+		        HTMLException.Severities.Warning)
 		      End If
 		    End If
 		    seenAttributes.Value(attrName.Lowercase) = True
@@ -1108,8 +1108,8 @@ Protected Class HTMLDocument
 		  Var id As String = node.AttributeValue("id")
 		  If id <> "" Then
 		    If mTrackIDs.HasKey(id) Then
-		      AddError(HTMLParserException.Types.DuplicateID, _
-		      "Duplicate ID '" + id + "' found", HTMLParserException.Severities.Error)
+		      AddError(HTMLException.Types.DuplicateID, _
+		      "Duplicate ID '" + id + "' found", HTMLException.Severities.Error)
 		    Else
 		      mTrackIDs.Value(id) = True
 		    End If
@@ -1127,8 +1127,8 @@ Protected Class HTMLDocument
 		    If PeekChar = ">" Then
 		      Advance
 		    Else
-		      AddError(HTMLParserException.Types.MalformedTag, _
-		      "Missing '>' for tag <" + tagName + ">", HTMLParserException.Severities.Error)
+		      AddError(HTMLException.Types.MalformedTag, _
+		      "Missing '>' for tag <" + tagName + ">", HTMLException.Severities.Error)
 		    End If
 		  End If
 		  
@@ -1140,8 +1140,8 @@ Protected Class HTMLDocument
 		    ParseRawTextContent(node, tagName)
 		  ElseIf VoidTags.IndexOf(tagName) <> -1 Then
 		    If Not isSelfClosing And mStrictMode Then
-		      AddError(HTMLParserException.Types.MalformedTag, _
-		      "Void tag <" + tagName + "> should be self-closing", HTMLParserException.Severities.Warning)
+		      AddError(HTMLException.Types.MalformedTag, _
+		      "Void tag <" + tagName + "> should be self-closing", HTMLException.Severities.Warning)
 		    End If
 		    node.IsSelfClosing = True
 		    
@@ -1428,8 +1428,8 @@ Protected Class HTMLDocument
 		  If TrackWarningsAndInfo Or mStrictMode Then
 		    If tagName = "input" And attrName = "type" Then
 		      If validTypes.IndexOf(value.Lowercase) = -1 Then
-		        AddError(HTMLParserException.Types.InvalidAttribute, _
-		        "Invalid input type: '" + value + "'", HTMLParserException.Severities.Warning)
+		        AddError(HTMLException.Types.InvalidAttribute, _
+		        "Invalid input type: '" + value + "'", HTMLException.Severities.Warning)
 		      End If
 		    End If
 		  End If
@@ -1437,8 +1437,8 @@ Protected Class HTMLDocument
 		  // Validate URLs.
 		  If attrName = "href" Or attrName = "src" Or attrName = "action" Then
 		    If value.IndexOf("javascript:") = 0 And mStrictMode Then
-		      AddError(HTMLParserException.Types.InvalidAttribute, _
-		      "JavaScript URLs are discouraged", HTMLParserException.Severities.Warning)
+		      AddError(HTMLException.Types.InvalidAttribute, _
+		      "JavaScript URLs are discouraged", HTMLException.Severities.Warning)
 		    End If
 		  End If
 		  
@@ -1549,7 +1549,7 @@ Protected Class HTMLDocument
 	#tag EndProperty
 
 	#tag Property, Flags = &h1, Description = 53746F72657320616E792069737375657320286572726F72732C207761726E696E6773206F7220696E666F726D6174696F6E206D65737361676573292E
-		Protected mIssues() As HTMLParserException
+		Protected mIssues() As HTMLException
 	#tag EndProperty
 
 	#tag Property, Flags = &h1

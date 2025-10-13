@@ -1,8 +1,8 @@
 #tag Class
-Protected Class HTMLParserException
+Protected Class HTMLException
 Inherits RuntimeException
 	#tag Method, Flags = &h0
-		Sub Constructor(type As HTMLParserException.Types, line As Integer, column As Integer, message As String, severity As HTMLParserException.Severities = HTMLParserException.Severities.Warning)
+		Sub Constructor(type As HTMLException.Types, line As Integer, column As Integer, message As String, severity As HTMLException.Severities = HTMLException.Severities.Warning)
 		  // Calling the overridden superclass constructor.
 		  Super.Constructor(message)
 		  
@@ -16,21 +16,21 @@ Inherits RuntimeException
 	#tag EndMethod
 
 	#tag Method, Flags = &h1, Description = 52657475726E732074686520706173736564207365766572697479206173206120737472696E672E
-		Protected Function SeverityToString(sev As HTMLParserException.Severities) As String
+		Protected Function SeverityToString(sev As HTMLException.Severities) As String
 		  /// Returns the passed severity as a string.
 		  
 		  Select Case sev
-		  Case HTMLParserException.Severities.Error
+		  Case HTMLException.Severities.Error
 		    Return "Error"
 		    
-		  Case HTMLParserException.Severities.Info
+		  Case HTMLException.Severities.Info
 		    Return "Info"
 		    
-		  Case HTMLParserException.Severities.Warning
+		  Case HTMLException.Severities.Warning
 		    Return "Warning"
 		    
 		  Else
-		    Raise New InvalidArgumentException("Unknown HTMLParserException severity.")
+		    Raise New InvalidArgumentException("Unknown HTMLException severity.")
 		  End Select
 		  
 		End Function
@@ -42,47 +42,47 @@ Inherits RuntimeException
 		  
 		  Var typeStr As String
 		  Select Case Type
-		  Case HTMLParserException.Types.DeprecatedTag
+		  Case HTMLException.Types.DeprecatedTag
 		    typeStr = "Deprecated Tag"
 		    
-		  Case HTMLParserException.Types.DuplicateID
+		  Case HTMLException.Types.DuplicateID
 		    typeStr = "Duplicate ID"
 		    
-		  Case HTMLParserException.Types.InvalidAttribute
+		  Case HTMLException.Types.InvalidAttribute
 		    typeStr = "Invalid Attribute"
 		    
-		  Case HTMLParserException.Types.InvalidCharacter
+		  Case HTMLException.Types.InvalidCharacter
 		    typeStr = "Invalid Character"
 		    
-		  Case HTMLParserException.Types.InvalidNesting
+		  Case HTMLException.Types.InvalidNesting
 		    typeStr = "Invalid Nesting"
 		    
-		  Case HTMLParserException.Types.InvalidStructure
+		  Case HTMLException.Types.InvalidStructure
 		    typeStr = "Invalid Structure"
 		    
-		  Case HTMLParserException.Types.MalformedTag
+		  Case HTMLException.Types.MalformedTag
 		    typeStr = "Malformed Tag"
 		    
-		  Case HTMLParserException.Types.MissingRequiredAttribute
+		  Case HTMLException.Types.MissingRequiredAttribute
 		    typeStr = "Missing Required Attribute"
 		    
-		  Case HTMLParserException.Types.UnclosedCDATA
+		  Case HTMLException.Types.UnclosedCDATA
 		    typeStr = "Unclosed CDATA"
 		    
-		  Case HTMLParserException.Types.UnmatchedClosingTag
+		  Case HTMLException.Types.UnmatchedClosingTag
 		    typeStr = "Unmatched Closing Tag"
 		    
-		  Case HTMLParserException.Types.UnclosedComment
+		  Case HTMLException.Types.UnclosedComment
 		    typeStr = "Unclosed Comment"
 		    
-		  Case HTMLParserException.Types.UnclosedQuote
+		  Case HTMLException.Types.UnclosedQuote
 		    typeStr = "Unclosed Quote"
 		    
-		  Case HTMLParserException.Types.UnclosedTag
+		  Case HTMLException.Types.UnclosedTag
 		    typeStr = "Unclosed Tag"
 		    
 		  Else
-		    Raise New UnsupportedOperationException("HTMLParserException.ToString: Unknown HTMLParserException Type")
+		    Raise New UnsupportedOperationException("HTMLException.ToString: Unknown HTMLException Type")
 		  End Select
 		  
 		  Return "[" + SeverityString.Uppercase + "] " + typeStr + " at line " + _
@@ -104,7 +104,7 @@ Inherits RuntimeException
 	#tag EndProperty
 
 	#tag Property, Flags = &h0
-		Severity As HTMLParserException.Severities = HTMLParserException.Severities.Warning
+		Severity As HTMLException.Severities = HTMLException.Severities.Warning
 	#tag EndProperty
 
 	#tag ComputedProperty, Flags = &h0, Description = 52657475726E73207468697320657863657074696F6E2773207365766572697479206173206120737472696E672E
@@ -122,7 +122,7 @@ Inherits RuntimeException
 	#tag EndProperty
 
 	#tag Property, Flags = &h0
-		Type As HTMLParserException.Types
+		Type As HTMLException.Types
 	#tag EndProperty
 
 
