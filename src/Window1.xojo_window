@@ -19,7 +19,7 @@ Begin DesktopWindow Window1
    MenuBar         =   1968154623
    MenuBarVisible  =   False
    MinimumHeight   =   64
-   MinimumWidth    =   64
+   MinimumWidth    =   950
    Resizeable      =   True
    Title           =   "HTMLKit"
    Type            =   0
@@ -32,7 +32,7 @@ Begin DesktopWindow Window1
       FontName        =   "System"
       FontSize        =   0.0
       FontUnit        =   0
-      Height          =   694
+      Height          =   660
       Index           =   -2147483648
       Italic          =   False
       Left            =   20
@@ -44,12 +44,12 @@ Begin DesktopWindow Window1
       Panels          =   ""
       Scope           =   0
       SmallTabs       =   False
-      TabDefinition   =   "HTML\rTree\rReport"
+      TabDefinition   =   "HTML\rTree\rReport\rMarkdown"
       TabIndex        =   0
       TabPanelIndex   =   0
       TabStop         =   True
       Tooltip         =   ""
-      Top             =   52
+      Top             =   86
       Transparent     =   False
       Underline       =   False
       Value           =   2
@@ -71,7 +71,7 @@ Begin DesktopWindow Window1
          HasBorder       =   True
          HasHorizontalScrollbar=   False
          HasVerticalScrollbar=   True
-         Height          =   636
+         Height          =   602
          HideSelection   =   True
          Index           =   -2147483648
          InitialParent   =   "TabPanel1"
@@ -86,7 +86,7 @@ Begin DesktopWindow Window1
          LockTop         =   True
          MaximumCharactersAllowed=   0
          Multiline       =   True
-         ReadOnly        =   False
+         ReadOnly        =   True
          Scope           =   0
          TabIndex        =   0
          TabPanelIndex   =   1
@@ -95,7 +95,7 @@ Begin DesktopWindow Window1
          TextAlignment   =   0
          TextColor       =   &c000000
          Tooltip         =   ""
-         Top             =   90
+         Top             =   124
          Transparent     =   False
          Underline       =   False
          UnicodeMode     =   1
@@ -126,7 +126,7 @@ Begin DesktopWindow Window1
          HasHorizontalScrollbar=   False
          HasVerticalScrollbar=   True
          HeadingIndex    =   -1
-         Height          =   636
+         Height          =   602
          Index           =   -2147483648
          InitialParent   =   "TabPanel1"
          InitialValue    =   ""
@@ -144,7 +144,7 @@ Begin DesktopWindow Window1
          TabPanelIndex   =   2
          TabStop         =   True
          Tooltip         =   ""
-         Top             =   90
+         Top             =   124
          Transparent     =   False
          Underline       =   False
          Visible         =   True
@@ -175,7 +175,7 @@ Begin DesktopWindow Window1
          HasHorizontalScrollbar=   False
          HasVerticalScrollbar=   True
          HeadingIndex    =   -1
-         Height          =   612
+         Height          =   578
          Index           =   -2147483648
          InitialParent   =   "TabPanel1"
          InitialValue    =   "Type	Line	Column	Message"
@@ -193,7 +193,7 @@ Begin DesktopWindow Window1
          TabPanelIndex   =   3
          TabStop         =   True
          Tooltip         =   ""
-         Top             =   90
+         Top             =   124
          Transparent     =   False
          Underline       =   False
          Visible         =   True
@@ -201,36 +201,51 @@ Begin DesktopWindow Window1
          _ScrollOffset   =   0
          _ScrollWidth    =   -1
       End
-      Begin DesktopLabel ReportInfo
+      Begin DesktopTextArea MarkdownField
          AllowAutoDeactivate=   True
+         AllowFocusRing  =   True
+         AllowSpellChecking=   True
+         AllowStyledText =   True
+         AllowTabs       =   False
+         BackgroundColor =   &cFFFFFF
          Bold            =   False
          Enabled         =   True
          FontName        =   "System"
          FontSize        =   0.0
          FontUnit        =   0
-         Height          =   20
+         Format          =   ""
+         HasBorder       =   True
+         HasHorizontalScrollbar=   False
+         HasVerticalScrollbar=   True
+         Height          =   602
+         HideSelection   =   True
          Index           =   -2147483648
          InitialParent   =   "TabPanel1"
          Italic          =   False
          Left            =   40
-         LockBottom      =   False
+         LineHeight      =   0.0
+         LineSpacing     =   1.0
+         LockBottom      =   True
          LockedInPosition=   False
-         LockLeft        =   False
+         LockLeft        =   True
          LockRight       =   True
          LockTop         =   True
-         Multiline       =   False
-         Scope           =   2
-         Selectable      =   False
-         TabIndex        =   1
-         TabPanelIndex   =   3
+         MaximumCharactersAllowed=   0
+         Multiline       =   True
+         ReadOnly        =   False
+         Scope           =   0
+         TabIndex        =   0
+         TabPanelIndex   =   4
          TabStop         =   True
-         Text            =   "Report Info"
-         TextAlignment   =   3
+         Text            =   ""
+         TextAlignment   =   0
          TextColor       =   &c000000
          Tooltip         =   ""
-         Top             =   714
+         Top             =   124
          Transparent     =   False
          Underline       =   False
+         UnicodeMode     =   1
+         ValidationMask  =   ""
          Visible         =   True
          Width           =   1004
       End
@@ -265,7 +280,7 @@ Begin DesktopWindow Window1
       TabIndex        =   1
       TabPanelIndex   =   0
       TabStop         =   True
-      Text            =   "https://garrypettet.com"
+      Text            =   "https://garrypettet.com/projects/htmlkit.html"
       TextAlignment   =   0
       TextColor       =   &c000000
       Tooltip         =   ""
@@ -339,6 +354,155 @@ Begin DesktopWindow Window1
       Visible         =   True
       Width           =   80
    End
+   Begin DesktopCheckBox ConvertToMarkdown
+      AllowAutoDeactivate=   True
+      Bold            =   False
+      Caption         =   "Convert to Markdown"
+      Enabled         =   True
+      FontName        =   "System"
+      FontSize        =   0.0
+      FontUnit        =   0
+      Height          =   20
+      Index           =   -2147483648
+      Italic          =   False
+      Left            =   20
+      LockBottom      =   False
+      LockedInPosition=   False
+      LockLeft        =   True
+      LockRight       =   False
+      LockTop         =   True
+      Scope           =   0
+      TabIndex        =   4
+      TabPanelIndex   =   0
+      TabStop         =   True
+      Tooltip         =   "If checked then the processed HTML will also be converted to Markdown (visible on the Markdown tab)."
+      Top             =   54
+      Transparent     =   False
+      Underline       =   False
+      Visible         =   True
+      VisualState     =   1
+      Width           =   163
+   End
+   Begin DesktopCheckBox IgnoreImages
+      AllowAutoDeactivate=   True
+      Bold            =   False
+      Caption         =   "Ignore Images"
+      Enabled         =   True
+      FontName        =   "System"
+      FontSize        =   0.0
+      FontUnit        =   0
+      Height          =   20
+      Index           =   -2147483648
+      Italic          =   False
+      Left            =   195
+      LockBottom      =   False
+      LockedInPosition=   False
+      LockLeft        =   True
+      LockRight       =   False
+      LockTop         =   True
+      Scope           =   0
+      TabIndex        =   5
+      TabPanelIndex   =   0
+      TabStop         =   True
+      Tooltip         =   "If checked then image elements will be ignored in the processed Markdown."
+      Top             =   54
+      Transparent     =   False
+      Underline       =   False
+      Visible         =   True
+      VisualState     =   0
+      Width           =   120
+   End
+   Begin DesktopCheckBox IgnoreTables
+      AllowAutoDeactivate=   True
+      Bold            =   False
+      Caption         =   "Ignore Tables"
+      Enabled         =   True
+      FontName        =   "System"
+      FontSize        =   0.0
+      FontUnit        =   0
+      Height          =   20
+      Index           =   -2147483648
+      Italic          =   False
+      Left            =   327
+      LockBottom      =   False
+      LockedInPosition=   False
+      LockLeft        =   True
+      LockRight       =   False
+      LockTop         =   True
+      Scope           =   0
+      TabIndex        =   6
+      TabPanelIndex   =   0
+      TabStop         =   True
+      Tooltip         =   "If checked then tables will be ignored in the processed Markdown."
+      Top             =   54
+      Transparent     =   False
+      Underline       =   False
+      Visible         =   True
+      VisualState     =   1
+      Width           =   121
+   End
+   Begin DesktopCheckBox RemoveLinks
+      AllowAutoDeactivate=   True
+      Bold            =   False
+      Caption         =   "Remove Links"
+      Enabled         =   True
+      FontName        =   "System"
+      FontSize        =   0.0
+      FontUnit        =   0
+      Height          =   20
+      Index           =   -2147483648
+      Italic          =   False
+      Left            =   460
+      LockBottom      =   False
+      LockedInPosition=   False
+      LockLeft        =   True
+      LockRight       =   False
+      LockTop         =   True
+      Scope           =   0
+      TabIndex        =   7
+      TabPanelIndex   =   0
+      TabStop         =   True
+      Tooltip         =   "If checked then URLs will be removed from the processed Markdown but link text will be preserved."
+      Top             =   54
+      Transparent     =   False
+      Underline       =   False
+      Visible         =   True
+      VisualState     =   0
+      Width           =   121
+   End
+   Begin DesktopLabel Info
+      AllowAutoDeactivate=   True
+      Bold            =   False
+      Enabled         =   True
+      FontName        =   "System"
+      FontSize        =   0.0
+      FontUnit        =   0
+      Height          =   20
+      Index           =   -2147483648
+      InitialParent   =   ""
+      Italic          =   False
+      Left            =   593
+      LockBottom      =   False
+      LockedInPosition=   False
+      LockLeft        =   False
+      LockRight       =   True
+      LockTop         =   True
+      Multiline       =   False
+      Scope           =   2
+      Selectable      =   False
+      TabIndex        =   8
+      TabPanelIndex   =   0
+      TabStop         =   True
+      Text            =   "Info"
+      TextAlignment   =   3
+      TextColor       =   &c000000
+      Tooltip         =   ""
+      Top             =   54
+      Transparent     =   False
+      Underline       =   False
+      Visible         =   True
+      Width           =   471
+   End
 End
 #tag EndDesktopWindow
 
@@ -346,6 +510,7 @@ End
 	#tag Event
 		Sub Opening()
 		  ButtonProcess.Enabled = LinkField.Text.Length > 0
+		  Info.Text = ""
 		  
 		End Sub
 	#tag EndEvent
@@ -388,8 +553,11 @@ End
 #tag Events ButtonProcess
 	#tag Event
 		Sub Pressed()
-		  // Clear out any previous report issues.
-		  ReportInfo.Text = ""
+		  // Clear out any results.
+		  Info.Text = ""
+		  HTMLField.Text = ""
+		  MyNodeBrowser.RemoveAllRows
+		  MarkdownField.Text = ""
 		  
 		  // Try to get the contents of the provided URL.
 		  Var link As URL
@@ -406,27 +574,59 @@ End
 		    Return
 		  End If
 		  
+		  // Display the raw HTML.
 		  HTMLField.Text = link.Contents
 		  
+		  // Create a new HTML document and parse the raw HTML.
 		  Document = New HTMLDocument(False)
 		  Document.TrackWarningsAndInfo = True
 		  
 		  // Parse the document.
-		  Var watch As New StopWatch(True)
+		  Var htmlWatch As New StopWatch(True)
 		  Document.Parse(link.Contents)
-		  watch.Stop
+		  htmlWatch.Stop
 		  
+		  // If there were issues, display them.
 		  UpdateValidationReport(Document.Issues)
 		  
-		  If Document.HasIssues Then
-		    ReportInfo.Text = Document.Issues.Count.ToString + If(Document.Issues.Count = 1, " issue (", " issues (" + _
-		    watch.ElapsedMilliseconds.ToString + " ms).")
-		  Else
-		    ReportInfo.Text = "No issues (" + watch.ElapsedMilliseconds.ToString + " ms)."
-		  End If
-		  
+		  // Display the HTML tree in the listbox.
 		  MyNodeBrowser.AddDocument(Document)
 		  
+		  // Update the info text at the bottom of the window.
+		  If Document.HasIssues Then
+		    Info.Text = Document.Issues.Count.ToString + " HTML" + If(Document.Issues.Count = 1, " issue (", " issues (" + _
+		    htmlWatch.ElapsedMilliseconds.ToString + " ms). ")
+		  Else
+		    Info.Text = "HTML processed in " + htmlWatch.ElapsedMilliseconds.ToString + " ms. "
+		  End If
+		  
+		  // Parse the HTML into Markdown if requested.
+		  If ConvertToMarkdown.Value Then
+		    // Setup the context.
+		    Var context As New MarkdownContext(link.ResolvedURL)
+		    If IgnoreImages.Value Then context.AddExcludedElement("img")
+		    If IgnoreTables.Value Then context.AddExcludedElement("table")
+		    context.RemoveLinks = RemoveLinks.Value
+		    
+		    // Process the HTML document.
+		    Var mdWatch As New StopWatch(True)
+		    MarkdownField.Text = HTMLMarkdownConverter.FromHTML(Document, context)
+		    mdWatch.Stop
+		    
+		    // Update the info label.
+		    Info.Text = Info.Text + "Markdown processed in " + mdWatch.ElapsedMilliseconds.ToString + " ms."
+		  End If
+		  
+		  
+		End Sub
+	#tag EndEvent
+#tag EndEvents
+#tag Events ConvertToMarkdown
+	#tag Event
+		Sub ValueChanged()
+		  IgnoreImages.Enabled = Me.Value
+		  IgnoreTables.Enabled = Me.Value
+		  RemoveLinks.Enabled = Me.Value
 		End Sub
 	#tag EndEvent
 #tag EndEvents

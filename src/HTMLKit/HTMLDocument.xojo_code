@@ -525,6 +525,7 @@ Protected Class HTMLDocument
 		  
 		  mRoot = New HTMLNode(HTMLNode.Types.Element)
 		  mRoot.TagName = "document"
+		  mRoot.Type = HTMLNode.Types.Root
 		  mCurrentNode = mRoot
 		  mOpenTags.ResizeTo(-1)
 		  

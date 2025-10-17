@@ -1097,9 +1097,6 @@ Protected Class HTMLNode
 		  Case HTMLNode.Types.DocType
 		    result = spaces + "<!DOCTYPE " + Content + ">" + EndOfLine
 		    
-		  Case HTMLNode.Types.Text
-		    result = spaces + Content.ReplaceAll(EndOfLine, " ") + EndOfLine
-		    
 		  Case HTMLNode.Types.Element
 		    // <elementName
 		    result = spaces + "<" + TagName
@@ -1121,6 +1118,12 @@ Protected Class HTMLNode
 		    If Not IsSelfClosing Then
 		      result = result + spaces + "</" + TagName + ">" + EndOfLine
 		    End If
+		    
+		  Case HTMLNode.Types.Root
+		    result = spaces + "ROOT" + EndOfLine
+		    
+		  Case HTMLNode.Types.Text
+		    result = spaces + Content.ReplaceAll(EndOfLine, " ") + EndOfLine
 		  End Select
 		  
 		  Return result
@@ -1263,6 +1266,7 @@ Protected Class HTMLNode
 		  Comment
 		  DocType
 		  Element
+		  Root
 		Text
 	#tag EndEnum
 
