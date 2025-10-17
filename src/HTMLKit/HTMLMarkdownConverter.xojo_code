@@ -397,6 +397,13 @@ Protected Class HTMLMarkdownConverter
 		  
 		  If node = Nil Then Return ""
 		  
+		  // Should this node be excluded based on its ID, class name or role attribute?
+		  If node.Attributes_.KeyCount > 0 Then
+		    If context.IDIsExcluded(node.AttributeValue("id")) Then Return ""
+		    If context.ClassIsExcluded(node.AttributeValue("class")) Then Return ""
+		    If context.RoleIsExcluded(node.AttributeValue("role")) Then Return ""
+		  End If
+		  
 		  Var result As String = ""
 		  
 		  Select Case node.Type
