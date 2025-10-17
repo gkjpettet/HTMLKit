@@ -1,17 +1,19 @@
 # HTMLKit
-A collection of Xojo classes for parsing HTML into a traversable tree and for handling URLs.
+A collection of Xojo classes for parsing HTML into a traversable tree, for handling URLs and converting HTML to Markdown.
 
 ## About
-HTMLKit consists of four classes:
+`HTMLKit` consists of six classes:
 
 - `HTMLDocument`: Parses an HTML string into a document of nodes.
 - `HTMLNode`: Represents an atomic component of an HTML document (e.g. a `<div>` or `<a>` element).
 - `HTMLException`: A `RuntimeException` subclass that contains information about errors or warnings that were encountered during the parsing process.
+- `HTMLMarkdownConverter`: Exposes a shared method `FromHTML()` that converts a `HTMLDocument` to Markdown.
+- `MarkdownContext`: Allows fine-grained control over how Markdown is processed. Essentially a configuration class for the `HTMLMarkdownConverter`.
 - `URL`: A helper class that represents an internet URL. Is constructed from a string and fetches the contents of that link.
 
 This is all 100% native Xojo code with no external dependencies.
 
-## Usage
+## Usage: HTML Processing
 
 ```xojo
 Var linkString As String = "https://garrypettet.com"
@@ -69,5 +71,31 @@ Var englishElements() As HTMLNode = doc.NodesWithSelector("[lang|=en]")
 // 8. Not equal (custom extension). Find all inputs that are NOT text type:
 Var nonTextInputs() As HTMLNode = doc.NodesWithSelector("[type!=text]")
 ```
+
+## Usage: Markdown Processing
+
+```xojo
+// First we need to process HTML into a `HTMLDocument`:
+Var doc As New HTMLDocument
+doc.Parse(someHTML) // Assume `someHTML` actually contains HTML from some source.
+
+// 1. Most simple usage. Processes all elements except <head> and <script>.
+// This will not resolve relative links since we aren't providing the page's base URL.
+Var md1 As String = HTMLMarkdownConverter.FromHTML(doc)
+
+// 2. As above but this time we will provide a base URL. For example, let's say the 
+// HTML came from `https://garrypettet.com/projects/index.html`, we will specify the
+// root URL:
+Var baseURL As String = "https://garrypettet.com"
+Var md2 As String = HTMLMarkdownConverter.FromHTML(doc, baseURL)
+
+// 3. We can go all in and build a custom processing context to exclude different
+// elements from processing:
+Var context As New MarkdownContext(baseURL)
+context.AddExcludedElement("img", "table") // This will bypass all tables and images in the document.
+context.RemoveLinks = True // This will keep link text but remove URLs from the Markdown.
+Var md3 As String = HTMLMarkdownConverter(doc, context)
+```
+
 ## Demo
-This repo contains a simple demo app that takes a URL you enter, fetches it and then parses the contents into a document tree. There is a hierarchical listbox that displays a simple representation of the nodes and a validation report is generated.
+The repo contains a simple demo app that takes a URL you enter, fetches it and then parses the contents into a document tree. There is a hierarchical listbox that displays a simple representation of the nodes and a validation report is generated. Markdown is displayed in its own tab.
