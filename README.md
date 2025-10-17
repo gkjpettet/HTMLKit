@@ -94,7 +94,7 @@ Var md2 As String = HTMLMarkdownConverter.FromHTML(doc, baseURL)
 Var context As New MarkdownContext(baseURL)
 context.AddExcludedElement("img", "table") // This will bypass all tables and images in the document.
 context.RemoveLinks = True // This will keep link text but remove URLs from the Markdown.
-Var md3 As String = HTMLMarkdownConverter(doc, context)
+Var md3 As String = HTMLMarkdownConverter.FromHTML(doc, context)
 ```
 
 ## Demo
