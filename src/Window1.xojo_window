@@ -52,7 +52,7 @@ Begin DesktopWindow Window1
       Top             =   86
       Transparent     =   False
       Underline       =   False
-      Value           =   2
+      Value           =   0
       Visible         =   True
       Width           =   1044
       Begin DesktopTextArea HTMLField
@@ -542,6 +542,8 @@ End
 
 #tag EndWindowCode
 
+#tag Events HTMLField
+#tag EndEvents
 #tag Events LinkField
 	#tag Event
 		Sub TextChanged()
