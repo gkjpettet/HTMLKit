@@ -379,6 +379,7 @@ Begin DesktopWindow Window1
       Top             =   54
       Transparent     =   False
       Underline       =   False
+      Value           =   False
       Visible         =   True
       VisualState     =   1
       Width           =   163
@@ -408,6 +409,7 @@ Begin DesktopWindow Window1
       Top             =   54
       Transparent     =   False
       Underline       =   False
+      Value           =   False
       Visible         =   True
       VisualState     =   0
       Width           =   120
@@ -437,6 +439,7 @@ Begin DesktopWindow Window1
       Top             =   54
       Transparent     =   False
       Underline       =   False
+      Value           =   False
       Visible         =   True
       VisualState     =   1
       Width           =   121
@@ -466,6 +469,7 @@ Begin DesktopWindow Window1
       Top             =   54
       Transparent     =   False
       Underline       =   False
+      Value           =   False
       Visible         =   True
       VisualState     =   0
       Width           =   121
@@ -542,8 +546,6 @@ End
 
 #tag EndWindowCode
 
-#tag Events HTMLField
-#tag EndEvents
 #tag Events LinkField
 	#tag Event
 		Sub TextChanged()
