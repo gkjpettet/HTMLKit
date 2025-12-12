@@ -612,6 +612,9 @@ End
 		    If IgnoreTables.Value Then context.AddExcludedElement("table")
 		    context.RemoveLinks = RemoveLinks.Value
 		    
+		    // Exclude classes that rarely have meaningful content.
+		    context.AddExcludedClass("navbar", "footer")
+		    
 		    // Process the HTML document.
 		    Var mdWatch As New StopWatch(True)
 		    MarkdownField.Text = HTMLMarkdownConverter.FromHTML(Document, context)
