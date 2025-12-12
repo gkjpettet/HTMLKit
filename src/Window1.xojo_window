@@ -613,7 +613,8 @@ End
 		    context.RemoveLinks = RemoveLinks.Value
 		    
 		    // Exclude classes that rarely have meaningful content.
-		    context.AddExcludedClass("navbar", "footer")
+		    context.AddExcludedClassPattern("*navbar*", "*footer*")
+		    context.AddExcludedElement("hr")
 		    
 		    // Process the HTML document.
 		    Var mdWatch As New StopWatch(True)

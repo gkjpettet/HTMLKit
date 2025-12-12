@@ -3,13 +3,28 @@ Protected Class MarkdownContext
 	#tag Method, Flags = &h0, Description = 41646473207468652070617373656420636C617373206E616D65732028652E672E2022636F6E74656E74222920746F20746865206C697374206F6620636C617373206E616D657320746861742077696C6C2062652069676E6F72656420647572696E6720636F6E76657273696F6E2E
 		Sub AddExcludedClass(ParamArray classes() As String)
 		  /// Adds the passed class names (e.g. "content") to the list of class names that will be ignored during conversion.
-		  
+
 		  If mExcludedClasses = Nil Then mExcludedClasses = New Dictionary
-		  
+
 		  For Each c As String In classes
 		    mExcludedClasses.Value(c) = True
 		  Next c
-		  
+
+		End Sub
+	#tag EndMethod
+
+	#tag Method, Flags = &h0, Description = 4164647320776696C646361726420706174746572sixth6E7320666F7220636C617373206578636C7573696F6E2E20557365202A20617320612077696C64636172643A20222A666F6F74657222206D6174636865732022666F6F746572222C20226D79666F6F746572222C2022626F74746F6D2D666F6F746572222E
+		Sub AddExcludedClassPattern(ParamArray patterns() As String)
+		  /// Adds wildcard patterns for class exclusion.
+		  /// Use * as a wildcard:
+		  /// - "*footer" matches "footer", "myfooter", "bottom-footer"
+		  /// - "nav*" matches "nav", "navbar", "navigation"
+		  /// - "*content*" matches "main-content", "content-area", "content"
+
+		  For Each pattern As String In patterns
+		    mExcludedClassPatterns.Add(pattern)
+		  Next pattern
+
 		End Sub
 	#tag EndMethod
 
@@ -55,34 +70,83 @@ Protected Class MarkdownContext
 	#tag Method, Flags = &h0, Description = 52657475726E732054727565206966207468652073706563696669656420636C617373206973206578636C756465642066726F6D2070726F63657373696E672E
 		Function ClassIsExcluded(className As String) As Boolean
 		  /// Returns True if the specified class is excluded from processing.
-		  
+		  /// Checks both exact matches (from AddExcludedClass) and wildcard patterns (from AddExcludedClassPattern).
+
 		  className = className.Trim
-		  
+
 		  If className.Contains(" ") Then
 		    Var names() As String = className.Split(" ")
 		    For Each name As String In names
+		      // Check exact match first (fast dictionary lookup).
 		      If mExcludedClasses.HasKey(name) Then Return True
+		      // Check wildcard patterns.
+		      For Each pattern As String In mExcludedClassPatterns
+		        If ClassMatchesPattern(name, pattern) Then Return True
+		      Next pattern
 		    Next name
 		    Return False
 		  Else
-		    Return mExcludedClasses.HasKey(className)
+		    // Check exact match first (fast dictionary lookup).
+		    If mExcludedClasses.HasKey(className) Then Return True
+		    // Check wildcard patterns.
+		    For Each pattern As String In mExcludedClassPatterns
+		      If ClassMatchesPattern(className, pattern) Then Return True
+		    Next pattern
+		    Return False
 		  End If
-		  
+
+		End Function
+	#tag EndMethod
+
+	#tag Method, Flags = &h1, Description = 52657475726E7320547275652069662074686520636C617373206E616D65206D61746368657320746865207370656369666965642077696C646361726420706174746572sixth6E2E
+		Protected Function ClassMatchesPattern(className As String, pattern As String) As Boolean
+		  /// Returns True if the class name matches the specified wildcard pattern.
+		  /// Supports * at the start, end, or both:
+		  /// - "*footer" matches any class ending with "footer"
+		  /// - "nav*" matches any class starting with "nav"
+		  /// - "*content*" matches any class containing "content"
+
+		  If pattern = "*" Then Return True
+
+		  Var startsWithWildcard As Boolean = pattern.BeginsWith("*")
+		  Var endsWithWildcard As Boolean = pattern.EndsWith("*")
+
+		  If startsWithWildcard And endsWithWildcard Then
+		    // *foo* - contains match
+		    Var search As String = pattern.Middle(1, pattern.Length - 2)
+		    Return className.Contains(search)
+
+		  ElseIf startsWithWildcard Then
+		    // *foo - ends with match
+		    Var suffix As String = pattern.Middle(1)
+		    Return className.EndsWith(suffix)
+
+		  ElseIf endsWithWildcard Then
+		    // foo* - starts with match
+		    Var prefix As String = pattern.Left(pattern.Length - 1)
+		    Return className.BeginsWith(prefix)
+
+		  Else
+		    // No wildcard - exact match
+		    Return className = pattern
+		  End If
+
 		End Function
 	#tag EndMethod
 
 	#tag Method, Flags = &h0
 		Sub Constructor(baseURL As String = "")
 		  mExcludedClasses = New Dictionary
+		  mExcludedClassPatterns.ResizeTo(-1)
 		  mExcludedElements = New Dictionary
 		  mExcludedIDs = New Dictionary
 		  mExcludedRoles = New Dictionary
-		  
+
 		  // By default, we will ignore <head>, <script> and <style> elements.
 		  AddExcludedElement("head", "script", "style")
-		  
+
 		  Self.BaseURL = URL.NormaliseAndValidateURL(baseURL)
-		  
+
 		End Sub
 	#tag EndMethod
 
@@ -134,6 +198,10 @@ Protected Class MarkdownContext
 
 	#tag Property, Flags = &h1, Description = 50726F7669646573206120717569636B206C6F6F6B757020746F20736B697020756E77616E74656420656C656D656E7420636C61737365732E204B6579203D20636C617373206E616D652028537472696E67292C2056616C7565203D205472756520286E6F74207573656429292E
 		Protected mExcludedClasses As Dictionary
+	#tag EndProperty
+
+	#tag Property, Flags = &h1, Description = 57696C646361726420706174746572sixth6E7320666F7220636C617373206578636C7573696F6E2028652E672E20222A666F6F74657222206D61746368657320226D79666F6F746572222C2022626F74746F6D2D666F6F74657222292E
+		Protected mExcludedClassPatterns() As String
 	#tag EndProperty
 
 	#tag Property, Flags = &h1, Description = 50726F7669646573206120717569636B206C6F6F6B757020746F20736B697020756E77616E74656420656C656D656E747320286C696B65203C7363726970743E206F72203C7374796C653E2074616773292E204B6579203D20656C656D656E74206E616D652028537472696E67292C2056616C7565203D205472756520286E6F74207573656429292E
